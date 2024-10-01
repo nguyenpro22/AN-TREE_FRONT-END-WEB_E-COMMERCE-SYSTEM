@@ -1,4 +1,4 @@
-import { CookieStorageKey, LocalStorageKey } from "@/constants";
+import { CookieStorageKey } from "@/constants";
 import { clearCookieStorage, getCookie, setCookie } from "@/utils";
 
 export const clearToken = () => {
@@ -54,9 +54,18 @@ export const GetDataByToken = (token: string): any | null => {
   return { id, name, isAdmin, membername };
 };
 
-export const rememberMe = (token: string): void => {
+export const rememberMe = (token: string, refreshToken: string): void => {
+  setCookie(CookieStorageKey.REMEMBER_ME, "true", 30);
   setCookie(CookieStorageKey.ACCESS_TOKEN, token, 30);
+  setCookie(CookieStorageKey.REFRESH_TOKEN, refreshToken, 30);
 };
 export const isRememberMe = (): boolean => {
-  return getCookie(CookieStorageKey.ACCESS_TOKEN) ? true : false;
+  return getCookie(CookieStorageKey.REMEMBER_ME) ? true : false;
+};
+
+export const isTokenExpired = (expiryTime: Date): boolean => {
+  const timeRemaining = new Date(expiryTime).getTime() - Date.now();
+  const threshold = 30 * 1000;
+
+  return timeRemaining <= threshold;
 };

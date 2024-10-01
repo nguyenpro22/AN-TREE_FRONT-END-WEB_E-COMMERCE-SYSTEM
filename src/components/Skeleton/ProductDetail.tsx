@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Star, Heart } from "lucide-react";
+import { Star } from "lucide-react";
 
 export default function ProductDetailSkeleton() {
   return (

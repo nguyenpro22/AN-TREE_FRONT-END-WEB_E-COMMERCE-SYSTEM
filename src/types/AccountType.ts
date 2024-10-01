@@ -1,11 +1,16 @@
 export interface IUser {
-  id?: string;
+  id: string;
   name: string;
-  password?: string;
-  YoB?: number;
-  userName?: string;
-  avatar?: string;
-  isAdmin?: boolean;
-  occupation?: string;
-  interests?: string[];
+  email: string;
+  address: string;
+  city: string;
+  province: string;
+  phonenumber: string;
+  bankName: string;
+  bankOwnerName: string;
+  bankAccountNumber: string;
+  avatarImage: string;
+  coverImage: string;
+  createdOnUtc: string;
+  modifiedOnUtc: string;
 }

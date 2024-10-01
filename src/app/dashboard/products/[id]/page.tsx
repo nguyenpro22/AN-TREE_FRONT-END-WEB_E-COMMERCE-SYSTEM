@@ -1,12 +1,12 @@
+"use client";
 import React from "react";
-import { useRouter } from "next/router";
+import { useParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function ProductForm() {
-  const router = useRouter();
-  const { id } = router.query;
+  const { id } = useParams();
   const isNewProduct = id === "new";
 
   // TODO: Implement form logic, image upload, and rich text editor

@@ -12,7 +12,7 @@ const NavigationContext = createContext<NavigationContextType | undefined>(
 export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [currentPage, setCurrentPage] = useState("dashboard");
+  const [currentPage, setCurrentPage] = useState("Dashboard");
 
   return (
     <NavigationContext.Provider value={{ currentPage, setCurrentPage }}>

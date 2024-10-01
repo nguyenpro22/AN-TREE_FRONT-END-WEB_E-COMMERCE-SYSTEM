@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Head from "next/head";
 
 const NotFound: React.FC = () => {
   const router = useRouter();

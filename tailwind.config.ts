@@ -17,6 +17,11 @@ const config: Config = {
     "text-green-800",
     "bg-gray-200",
     "text-gray-800",
+    "bg-gray-500",
+    "bg-green-500",
+    "bg-yellow-500",
+    "bg-orange-500",
+    "bg-red-500",
   ],
   theme: {
     extend: {

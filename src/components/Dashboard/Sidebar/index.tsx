@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -51,7 +50,6 @@ const sidebarItems = [
 ];
 
 export default function Sidebar() {
-  const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { currentPage, setCurrentPage } = useNavigation();
 
