@@ -1,24 +1,28 @@
 export interface ILoginResponse {
-  value: {
-    accessToken: string;
-    refreshToken: string;
-    refreshTokenExpiryTime: string;
-  };
-  isSuccess: boolean;
-  isFailure: boolean;
-  error: {
-    code: string;
-    message: string;
-  };
+  accessToken: string;
+  refreshToken: string;
+  refreshTokenExpiryTime: string;
 }
 
 export interface ILogin {
-  email: string;
+  emailOrUserName: string;
   password: string;
+  isRememberMe?: boolean;
 }
 
 export interface IRegisterResponse {
   success: boolean;
   code: number;
   message: string;
+}
+
+export interface IRegister {
+  email: string;
+  username: string;
+  password: string;
+  confirmPassword: string;
+  firstName: string;
+  lastName: string;
+  phonenumber: string;
+  role: number;
 }

@@ -27,7 +27,7 @@ const AuthCard: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
-          <VendorCreationForm />
+          <VendorCreationForm handleLogout={() => setIsLoggedIn(false)} />
         </CardContent>
       </Card>
     );

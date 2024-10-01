@@ -20,9 +20,42 @@ export const authAPI = createApi({
         body,
       }),
     }),
+    logout: builder.mutation<IResCommon<string>, void>({
+      query: () => ({
+        url: `/auth/logout`,
+        method: "POST",
+      }),
+    }),
+    forgetPassword: builder.mutation<IResCommon<string>, { email: string }>({
+      query: (body) => ({
+        url: `/auth/forgot_password`,
+        method: "POST",
+        body,
+      }),
+    }),
+    verifyOTP: builder.mutation<
+      IResCommon<ILoginResponse>,
+      { email: string; code: string }
+    >({
+      query: (body) => ({
+        url: `/auth/verify_code`,
+        method: "POST",
+        body,
+      }),
+    }),
+    resetPassword: builder.mutation<
+      IResCommon<Object>,
+      { email: string; newPassword: string }
+    >({
+      query: (body) => ({
+        url: `/auth/change_password`,
+        method: "POST",
+        body,
+      }),
+    }),
     register: builder.mutation<IResCommon<IRegisterResponse>, Partial<IUser>>({
       query: (body) => ({
-        url: `/member`,
+        url: `/auth/register`,
         method: "POST",
         body,
       }),
@@ -30,4 +63,11 @@ export const authAPI = createApi({
   }),
 });
 
-export const { useLoginMutation, useRegisterMutation } = authAPI;
+export const {
+  useLoginMutation,
+  useRegisterMutation,
+  useLogoutMutation,
+  useForgetPasswordMutation,
+  useVerifyOTPMutation,
+  useResetPasswordMutation,
+} = authAPI;

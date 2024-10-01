@@ -1,9 +1,9 @@
 "use client";
 
-import Component from "./auth/page";
-import DashboardLayout from "./dashboard/layout";
-import DashboardPage from "./dashboard/page";
+import dynamic from "next/dynamic";
+
+const AuthComponent = dynamic(() => import("./auth/page"), { ssr: false });
 
 export default function Home() {
-  return <Component />;
+  return <AuthComponent />;
 }

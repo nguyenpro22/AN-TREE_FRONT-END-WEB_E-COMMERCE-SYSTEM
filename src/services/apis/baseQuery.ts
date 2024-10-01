@@ -1,5 +1,11 @@
 import { CookieStorageKey } from "@/constants";
-import { getAccessToken, getCookie, getRefreshToken } from "@/utils";
+import {
+  clearToken,
+  getAccessToken,
+  getCookie,
+  getRefreshToken,
+  setAccessToken,
+} from "@/utils";
 import {
   BaseQueryFn,
   FetchArgs,
@@ -25,15 +31,19 @@ export const baseQueryWithReAuth: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
+
   if (result.error && result.error.status === 401) {
     const refreshArgs = {
       url: `${process.env["NEXT_PUBLIC_API_URL"]}/auth/refresh_token`,
-
-      body: {
-        refresh_token: getRefreshToken(),
-      },
-
       method: "POST",
+      body: {
+        accessToken: getAccessToken(),
+        refreshToken: getRefreshToken(),
+      },
+      headers: {
+        Authorization: `Bearer ${getAccessToken()}`,
+        "Content-Type": "application/json",
+      },
     };
 
     const { data }: { [key: string]: any } = await baseQuery(
@@ -41,18 +51,20 @@ export const baseQueryWithReAuth: BaseQueryFn<
       api,
       extraOptions
     );
-    // if (data) {
-    //   setCookie(CookieStorageKey.ACCESS_TOKEN, data.access_token);
-    //   setRefreshToken(CookieStorageKey.REFRESH_TOKEN, data.refresh_token);
-    // } else {
-    //   clearToken();
-    //   window.location.href = PublicRoute.LOGIN;
-    // }
-    result = await baseQuery(args, api, extraOptions);
+
+    if (data) {
+      setAccessToken(data.accessToken);
+      result = await baseQuery(args, api, extraOptions);
+    } else {
+      clearToken();
+      window.location.href = "/auth";
+    }
   }
 
   if (result.error && result.error.status === 403) {
+    // Forbidden access, optionally handle it
     // window.location.href = PublicRoute.HOME;
   }
+
   return result;
 };

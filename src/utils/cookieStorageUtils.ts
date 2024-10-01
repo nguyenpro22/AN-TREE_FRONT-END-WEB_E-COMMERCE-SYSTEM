@@ -16,12 +16,12 @@ export function getCookie(key: CookieKey): string | null {
 export function setCookie(
   key: CookieKey,
   value: string,
-  hour: number = 1
+  day: number = 1
 ): void {
   if (typeof document === "undefined") return;
 
   const expires = new Date();
-  expires.setTime(expires.getTime() + hour * 60 * 60 * 1000);
+  expires.setTime(expires.getTime() + day * 24 * 60 * 60 * 1000);
   document.cookie = `${key}=${encodeURIComponent(
     value
   )};expires=${expires.toUTCString()};path=/`;

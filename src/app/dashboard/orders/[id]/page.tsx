@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,9 +19,9 @@ import {
   MailIcon,
   ClipboardIcon,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/utils/formatters";
 import { getStatusByCode, Order, OrderStatus } from "@/types";
+import toast from "react-hot-toast";
 
 const order: Order = {
   id: "3eda9572-b953-4bb7-8d0a-eac855c42f5d",
@@ -59,28 +58,28 @@ function formatDate(dateString: string): string {
 
 const getStatusText = (status: number): string => {
   switch (status) {
-    case OrderStatus.Pending.status:
-      return OrderStatus.Pending.description;
-    case OrderStatus.Processing.status:
-      return OrderStatus.Processing.description;
-    case OrderStatus.Shipped.status:
-      return OrderStatus.Shipped.description;
-    case OrderStatus.Delivered.status:
-      return OrderStatus.Delivered.description;
+    case 1:
+      return OrderStatus[1].description;
+    case 2:
+      return OrderStatus[2].description;
+    case 3:
+      return OrderStatus[3].description;
+    case 4:
+      return OrderStatus[4].description;
     default:
-      return OrderStatus.Pending.description;
+      return OrderStatus[1].description;
   }
 };
 
 const getStatusColor = (status: number): string => {
   switch (status) {
-    case OrderStatus.Pending.status:
+    case 1:
       return "bg-gray-500";
-    case OrderStatus.Processing.status:
+    case 2:
       return "bg-blue-500";
-    case OrderStatus.Shipped.status:
+    case 3:
       return "bg-blue-500";
-    case OrderStatus.Delivered.status:
+    case 4:
       return "bg-green-500";
     default:
       return "bg-gray-500";
@@ -102,14 +101,9 @@ const OrderStatusBadge: React.FC<{ status: number }> = ({ status }) => {
 };
 
 export default function OrderDetailCard() {
-  const { toast } = useToast();
-
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
-      toast({
-        title: "Copied to clipboard",
-        description: `${label} has been copied to your clipboard.`,
-      });
+      toast.success(`${label} has been copied to your clipboard.`);
     });
   };
 
