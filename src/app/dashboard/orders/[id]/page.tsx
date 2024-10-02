@@ -56,36 +56,6 @@ function formatDate(dateString: string): string {
     .padStart(2, "0")}:${date.getUTCSeconds().toString().padStart(2, "0")}`;
 }
 
-const getStatusText = (status: number): string => {
-  switch (status) {
-    case 1:
-      return OrderStatus[1].description;
-    case 2:
-      return OrderStatus[2].description;
-    case 3:
-      return OrderStatus[3].description;
-    case 4:
-      return OrderStatus[4].description;
-    default:
-      return OrderStatus[1].description;
-  }
-};
-
-const getStatusColor = (status: number): string => {
-  switch (status) {
-    case 1:
-      return "bg-gray-500";
-    case 2:
-      return "bg-blue-500";
-    case 3:
-      return "bg-blue-500";
-    case 4:
-      return "bg-green-500";
-    default:
-      return "bg-gray-500";
-  }
-};
-
 const OrderStatusBadge: React.FC<{ status: number }> = ({ status }) => {
   const statusInfo = getStatusByCode(status);
 

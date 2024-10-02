@@ -51,8 +51,7 @@ export default function VendorCreationForm({
     formState: { errors, isSubmitting },
   } = useForm<VendorCreationFormInputs>();
   const [isSuccess, setIsSuccess] = useState(false);
-  const [createVendor, { isLoading: isCreatingVendor }] =
-    useCreateVendorMutation();
+  const [createVendor] = useCreateVendorMutation();
   const onSubmit: SubmitHandler<VendorCreationFormInputs> = async (data) => {
     try {
       const formData = new FormData();
@@ -328,6 +327,7 @@ export default function VendorCreationForm({
                       id="avatarImage"
                       type="file"
                       accept="image/*"
+                      alt=""
                       className="border-purple-200 focus:border-purple-500 file:bg-purple-100 file:text-purple-700 file:border-0 file:rounded-md file:px-4 file:py-2 file:mr-4 file:hover:bg-purple-200 file:transition-colors"
                       {...register("avatarImage", {
                         required: "Avatar image is required",
@@ -347,6 +347,7 @@ export default function VendorCreationForm({
                       id="coverImage"
                       type="file"
                       accept="image/*"
+                      alt=""
                       className="border-purple-200 focus:border-purple-500 file:bg-purple-100 file:text-purple-700 file:border-0 file:rounded-md file:px-4 file:py-2 file:mr-4 file:hover:bg-purple-200 file:transition-colors"
                       {...register("coverImage", {
                         required: "Cover image is required",

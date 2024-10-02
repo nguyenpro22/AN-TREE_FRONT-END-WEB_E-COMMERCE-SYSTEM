@@ -126,7 +126,9 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
         email: data.email,
         newPassword: data.newPassword,
       });
-
+      if (!res.data?.isSuccess) {
+        throw new Error("fail To Reset password");
+      }
       setStep("success");
     } catch (error) {
       toast.error("Lỗi khi đổi mật khẩu");

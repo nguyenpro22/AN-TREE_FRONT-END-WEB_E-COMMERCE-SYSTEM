@@ -13,11 +13,7 @@ export function getCookie(key: CookieKey): string | null {
 }
 
 // Set a cookie
-export function setCookie(
-  key: CookieKey,
-  value: string,
-  day: number = 1
-): void {
+export function setCookie(key: CookieKey, value: string, day: number): void {
   if (typeof document === "undefined") return;
 
   const expires = new Date();

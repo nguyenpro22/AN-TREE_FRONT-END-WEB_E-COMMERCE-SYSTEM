@@ -55,10 +55,17 @@ const AuthCard: React.FC = () => {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="login">
-              <LoginForm onForgotPassword={() => setShowForgotPassword(true)} />
+              <LoginForm
+                isLoading={isLoggedIn}
+                onForgotPassword={() => setShowForgotPassword(true)}
+                onLoginSuccess={() => setIsLoggedIn(true)}
+              />
             </TabsContent>
             <TabsContent value="register">
-              <RegisterForm />
+              <RegisterForm
+                isSubmitting={isLoggedIn}
+                handleSubmitForm={() => setIsLoggedIn(true)}
+              />
             </TabsContent>
           </Tabs>
         )}
