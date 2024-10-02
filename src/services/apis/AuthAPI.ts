@@ -26,6 +26,16 @@ export const authAPI = createApi({
         method: "POST",
       }),
     }),
+    refreshToken: builder.mutation<
+      IResCommon<ILoginResponse>,
+      { accessToken: string; refreshToken: string }
+    >({
+      query: (body) => ({
+        url: `/auth/refresh_token`,
+        method: "POST",
+        body,
+      }),
+    }),
     forgetPassword: builder.mutation<IResCommon<string>, { email: string }>({
       query: (body) => ({
         url: `/auth/forgot_password`,

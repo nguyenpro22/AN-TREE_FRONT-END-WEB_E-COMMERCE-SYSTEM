@@ -20,25 +20,28 @@ import {
   ClipboardIcon,
 } from "lucide-react";
 import { formatCurrency } from "@/utils/formatters";
-import { getStatusByCode, Order, OrderStatus } from "@/types";
+import { getStatusByCode, OrderDetailResponse } from "@/types";
 import toast from "react-hot-toast";
 
-const order: Order = {
-  id: "3eda9572-b953-4bb7-8d0a-eac855c42f5d",
-  address: "123 Main St, Anytown, AN 12345",
-  note: "Please leave the package at the front door",
-  total: 20000,
-  status: 2,
+const order: OrderDetailResponse = {
+  id: "3ff25ad8-e989-44fc-928d-b3e685f381c1",
+  address: "",
+  note: "",
+  total: 0,
+  status: 0,
   isFeedback: false,
-  createdOnUtc: "2024-09-28T18:29:15.98459+00:00",
-  discount: 1000,
-  user: {
-    email: "user@example.com",
-    username: "johndoe",
-    firstname: "John",
-    lastname: "Doe",
-    phonenumber: "+1 (555) 123-4567",
-  },
+  createdOnUtc: "2024-09-30T05:07:05.52878+00:00",
+  discount: null,
+  orderDetails: [
+    {
+      id: "57ab88af-194b-4af1-ab80-1c61d6609213",
+      productQuantity: 0,
+      productName: "Name25",
+      productPrice: 25000,
+      productPriceDiscount: 25000,
+      orderDetailFeedback: null,
+    },
+  ],
 };
 
 function formatDate(dateString: string): string {
@@ -129,14 +132,14 @@ export default function OrderDetailCard() {
                   <UserIcon className="mr-2 h-5 w-5 text-primary" />
                   <span className="font-medium">Name:</span>
                 </div>
-                <span>{`${order.user.firstname} ${order.user.lastname}`}</span>
+                {/* <span>{`${order.user.firstname} ${order.user.lastname}`}</span> */}
               </div>
               <div className="flex items-center justify-between bg-secondary/10 p-3 rounded-lg">
                 <div className="flex items-center">
                   <PhoneIcon className="mr-2 h-5 w-5 text-primary" />
                   <span className="font-medium">Phone:</span>
                 </div>
-                <span>{order.user.phonenumber}</span>
+                {/* <span>{order.user.phonenumber}</span> */}
               </div>
               <div className="flex items-center justify-between bg-secondary/10 p-3 rounded-lg">
                 <div className="flex items-center">
@@ -144,7 +147,7 @@ export default function OrderDetailCard() {
                   <span className="font-medium">Email:</span>
                 </div>
                 <span className="truncate max-w-[200px]">
-                  {order.user.email}
+                  {/* {order.user.email} */}
                 </span>
               </div>
             </div>

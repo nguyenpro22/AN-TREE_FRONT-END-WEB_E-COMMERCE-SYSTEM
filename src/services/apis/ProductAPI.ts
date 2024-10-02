@@ -1,4 +1,4 @@
-import { IProduct, IProductListResponse, IResCommon } from "@/types";
+import { IProduct, IListResponse, IResCommon } from "@/types";
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReAuth } from "./baseQuery";
 
@@ -8,7 +8,7 @@ export const productApi = createApi({
   baseQuery: baseQueryWithReAuth,
   endpoints: (builder) => ({
     getProducts: builder.query<
-      IResCommon<IProductListResponse>,
+      IResCommon<IListResponse<IProduct>>,
       {
         pageIndex?: number;
         pageSize?: number;

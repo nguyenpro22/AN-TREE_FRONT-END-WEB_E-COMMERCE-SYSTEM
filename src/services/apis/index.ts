@@ -3,3 +3,4 @@ export * from "./AuthAPI";
 export * from "./CategoryAPI";
 export * from "./FeedbackAPI";
 export * from "./VendorAPI";
+export * from "./OrderAPI";

@@ -18,6 +18,26 @@ export type Order = {
   user: User;
 };
 
+export type OrderDetail = {
+  id: string;
+  productQuantity: number;
+  productName: string;
+  productPrice: number;
+  productPriceDiscount: number;
+  orderDetailFeedback: null | any; // Replace 'any' with a more specific type if available
+};
+
+export type OrderDetailResponse = {
+  id: string;
+  address: string;
+  note: string;
+  total: number;
+  status: number;
+  isFeedback: boolean;
+  createdOnUtc: string;
+  discount: null | number;
+  orderDetails: OrderDetail[];
+};
 // You can also define an enum for the order status if you want to use it throughout your application
 // types.ts
 export interface OrderStatusType {
@@ -28,29 +48,23 @@ export interface OrderStatusType {
 }
 
 export const OrderStatus: Record<number, OrderStatusType> = {
+  0: {
+    status: 0,
+    description: "Pending",
+    bg_Color: "bg-blue-200",
+    txt_Color: "text-blue-800",
+  },
   1: {
     status: 1,
-    description: "Pending",
+    description: "Failed",
     bg_Color: "bg-yellow-200",
     txt_Color: "text-yellow-800",
   },
   2: {
     status: 2,
-    description: "Processing",
-    bg_Color: "bg-blue-200",
-    txt_Color: "text-blue-800",
-  },
-  3: {
-    status: 3,
-    description: "Shipped",
+    description: "Success",
     bg_Color: "bg-green-200",
     txt_Color: "text-green-800",
-  },
-  4: {
-    status: 4,
-    description: "Delivered",
-    bg_Color: "bg-gray-200",
-    txt_Color: "text-gray-800",
   },
 };
 

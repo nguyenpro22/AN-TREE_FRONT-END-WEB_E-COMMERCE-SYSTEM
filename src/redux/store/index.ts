@@ -2,6 +2,7 @@ import {
   authAPI,
   categoryApi,
   feedbackApi,
+  orderApi,
   productApi,
   VendorAPI,
 } from "@/services/apis";
@@ -15,6 +16,7 @@ const store = configureStore({
     [categoryApi.reducerPath]: categoryApi.reducer,
     [feedbackApi.reducerPath]: feedbackApi.reducer,
     [VendorAPI.reducerPath]: VendorAPI.reducer,
+    [orderApi.reducerPath]: orderApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -22,7 +24,8 @@ const store = configureStore({
       productApi.middleware,
       categoryApi.middleware,
       feedbackApi.middleware,
-      VendorAPI.middleware
+      VendorAPI.middleware,
+      orderApi.middleware
     ),
 });
 
