@@ -47,7 +47,7 @@ export const productApi = createApi({
       }),
       providesTags: ["Product"],
     }),
-    createProduct: builder.mutation<IResCommon<IProduct>, Partial<IProduct>>({
+    createProduct: builder.mutation<IResCommon<IProduct>, Partial<FormData>>({
       query: (body) => ({
         url: "/products",
         method: "POST",
