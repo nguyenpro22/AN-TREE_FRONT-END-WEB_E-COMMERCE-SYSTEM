@@ -1,8 +1,6 @@
-
-
 type LocalStorageKey = string;
 
-const isWindow = typeof window !== 'undefined';
+const isWindow = typeof window !== "undefined";
 // Get the value associated with a key from localStorage
 export function getFromLocalStorage<T>(key: LocalStorageKey): T | null {
   const item = isWindow && localStorage.getItem(key);
@@ -11,7 +9,10 @@ export function getFromLocalStorage<T>(key: LocalStorageKey): T | null {
     try {
       return JSON.parse(item) as T;
     } catch (error) {
-      console.error(`Error parsing localStorage item with key '${key}':`, error);
+      console.error(
+        `Error parsing localStorage item with key '${key}':`,
+        error
+      );
     }
   }
 
@@ -19,7 +20,7 @@ export function getFromLocalStorage<T>(key: LocalStorageKey): T | null {
 }
 
 // Set a value associated with a key in localStorage
-export function setToLocalStorage(key: LocalStorageKey, value: any): void {
+export function setToLocalStorage(key: LocalStorageKey, value: unknown): void {
   try {
     const serializedValue = JSON.stringify(value);
     isWindow && localStorage.setItem(key, serializedValue);

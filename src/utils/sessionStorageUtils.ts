@@ -1,8 +1,6 @@
-
-
 type SessionStorageKey = string;
 
-const isWindow = typeof window !== 'undefined';
+const isWindow = typeof window !== "undefined";
 
 // Get the value associated with a key from sessionStorage
 export function getFromSessionStorage<T>(key: SessionStorageKey): T | null {
@@ -12,7 +10,10 @@ export function getFromSessionStorage<T>(key: SessionStorageKey): T | null {
     try {
       return JSON.parse(item) as T;
     } catch (error) {
-      console.error(`Error parsing sessionStorage item with key '${key}':`, error);
+      console.error(
+        `Error parsing sessionStorage item with key '${key}':`,
+        error
+      );
     }
   }
 
@@ -20,12 +21,18 @@ export function getFromSessionStorage<T>(key: SessionStorageKey): T | null {
 }
 
 // Set a value associated with a key in sessionStorage
-export function setToSessionStorage(key: SessionStorageKey, value: any): void {
+export function setToSessionStorage(
+  key: SessionStorageKey,
+  value: unknown
+): void {
   try {
     const serializedValue = JSON.stringify(value);
     isWindow && sessionStorage.setItem(key, serializedValue);
   } catch (error) {
-    console.error(`Error setting sessionStorage item with key '${key}':`, error);
+    console.error(
+      `Error setting sessionStorage item with key '${key}':`,
+      error
+    );
   }
 }
 

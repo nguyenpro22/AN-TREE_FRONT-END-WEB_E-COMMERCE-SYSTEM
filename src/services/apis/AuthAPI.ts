@@ -44,7 +44,7 @@ export const authAPI = createApi({
       }),
     }),
     resetPassword: builder.mutation<
-      IResCommon<Object>,
+      IResCommon<string>,
       { email: string; newPassword: string }
     >({
       query: (body) => ({
