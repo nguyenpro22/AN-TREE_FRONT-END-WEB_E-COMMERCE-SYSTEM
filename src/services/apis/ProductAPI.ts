@@ -1,4 +1,4 @@
-import { IProduct, IListResponse, IResCommon } from "@/types";
+import { IProduct, IListResponse, IResCommon, IProductDetail } from "@/types";
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReAuth } from "./baseQuery";
 
@@ -13,6 +13,7 @@ export const productApi = createApi({
         pageIndex?: number;
         pageSize?: number;
         categoryId?: string;
+        vendorName?: string;
         sortColumn?: string;
         sortOrder?: "asc" | "desc";
         serchTerm?: string;
@@ -23,6 +24,7 @@ export const productApi = createApi({
         pageIndex = 1,
         pageSize = 10,
         categoryId,
+        vendorName,
         sortColumn,
         sortOrder = "asc",
         serchTerm,
@@ -34,6 +36,7 @@ export const productApi = createApi({
           pageIndex,
           pageSize,
           categoryId,
+          vendorName,
           sortColumn,
           sortOrder,
           isSale,
@@ -41,7 +44,7 @@ export const productApi = createApi({
       }),
       providesTags: ["Product"],
     }),
-    getProductById: builder.query<IResCommon<IProduct>, string>({
+    getProductById: builder.query<IResCommon<IProductDetail>, string>({
       query: (id) => ({
         url: `/products/${id}`,
       }),

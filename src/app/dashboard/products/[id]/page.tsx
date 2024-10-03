@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import dynamic from "next/dynamic";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -26,10 +25,14 @@ import "react-quill/dist/quill.snow.css";
 import {
   useCreateProductMutation,
   useGetCategoriesQuery,
+  useGetProductByIdQuery,
 } from "@/services/apis";
 import { getAccessToken, GetDataByToken } from "@/utils";
 import ColorfulButton from "@/components/Auth/ColorfulButton";
 import { CheckCircle2, Loader2 } from "lucide-react";
+import { useParams } from "next/navigation";
+import ProductDetails from "@/components/Dashboard/ProductDetail";
+import { IProductDetail } from "@/types";
 
 const modules = {
   toolbar: {
@@ -96,7 +99,7 @@ const getBase64 = (file: RcFile): Promise<string> =>
     reader.onerror = (error) => reject(error);
   });
 
-export default function ProductForm() {
+function ProductForm() {
   const {
     register,
     handleSubmit,
@@ -399,4 +402,17 @@ export default function ProductForm() {
       />
     </Card>
   );
+}
+
+export default function Component() {
+  const params = useParams();
+  const productId = params.id as string;
+  const { data: product, isLoading } = useGetProductByIdQuery(productId);
+  if (productId == "new") {
+    return <ProductForm />;
+  }
+  if (product) {
+    return <ProductDetails product={product?.value as IProductDetail} />;
+  }
+  return <div>Product not found</div>;
 }

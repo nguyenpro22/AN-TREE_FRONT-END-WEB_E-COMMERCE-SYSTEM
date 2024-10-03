@@ -12,10 +12,11 @@ import ColorfulButton from "@/components/Auth/ColorfulButton";
 import RegisterForm from "@/components/Auth/RegisterForm";
 import {
   useGetVendorProfileQuery,
+  useLazyGetVendorProfileQuery,
   useLoginMutation,
   useRegisterMutation,
 } from "@/services/apis";
-import { ILogin, IRegister } from "@/types";
+import { ILogin, IRegister, IUser } from "@/types";
 import {
   isRememberMe,
   rememberMe,
@@ -27,6 +28,7 @@ import {
 import { toast } from "react-hot-toast";
 import { CookieStorageKey } from "@/constants";
 import { useRouter } from "next/navigation";
+import { useVendor } from "@/hooks/useVendorContext";
 
 export default function Component() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -35,16 +37,9 @@ export default function Component() {
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const router = useRouter();
-
-  const { data: profile } = useGetVendorProfileQuery(undefined, {
-    skip: !isLoggedIn,
-  });
-
-  useEffect(() => {
-    if (isLoggedIn && profile?.isSuccess) {
-      router.push("/dashboard");
-    }
-  }, [isLoggedIn, profile, router]);
+  const { setVendor } = useVendor();
+  const [getProfile, { data: profile, isError }] =
+    useLazyGetVendorProfileQuery();
 
   const handleLogin = async (formData: ILogin) => {
     try {
@@ -54,23 +49,36 @@ export default function Component() {
         throw new Error(res.error.message);
       }
 
+      // Lưu token
       const { accessToken, refreshToken, refreshTokenExpiryTime } = res.value;
       setAccessToken(accessToken);
       setRefreshToken(refreshToken);
       setRefreshTokenExpiryTime(refreshTokenExpiryTime);
 
+      // Lưu nhớ nếu người dùng chọn "Remember me"
       if (formData.isRememberMe) {
         rememberMe(accessToken, refreshToken);
       } else if (isRememberMe()) {
         removeCookie(CookieStorageKey.REMEMBER_ME);
       }
 
-      setIsLoggedIn(true);
+      // Gọi API lấy profile vendor sau khi login thành công
 
-      toast.success("Login successful");
+      const profileRes = await getProfile();
+      if (profileRes?.isError && profileRes.status == "rejected") {
+        toast.error("Your account is not have permission to access");
+        return;
+      }
+
+      if (profileRes?.data?.isSuccess) {
+        setVendor(profileRes.data.value as IUser); // Lưu vendor profile vào context
+        toast.success("Login successful");
+        router.push("/dashboard");
+      } else {
+        setIsLoggedIn(true);
+        toast.success("Login successful, please complete your profile");
+      }
     } catch (error) {
-      console.log(error);
-
       toast.error("Wrong email or password");
     }
   };

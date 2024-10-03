@@ -23,4 +23,8 @@ export const VendorAPI = createApi({
   }),
 });
 
-export const { useGetVendorProfileQuery, useCreateVendorMutation } = VendorAPI;
+export const {
+  useGetVendorProfileQuery,
+  useLazyGetVendorProfileQuery,
+  useCreateVendorMutation,
+} = VendorAPI;

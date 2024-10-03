@@ -17,6 +17,7 @@ import {
   fetchBaseQuery,
   FetchBaseQueryError,
 } from "@reduxjs/toolkit/query";
+import { message } from "antd";
 
 // Base query with the default authorization header
 export const baseQuery = fetchBaseQuery({
@@ -61,9 +62,8 @@ export const baseQueryWithReAuth: BaseQueryFn<
       setRefreshTokenExpiryTime(value.refreshTokenExpiryTime);
     } else {
       // If token refresh fails, clear tokens and handle unauthorized access
-      alert(isTokenExpired());
       clearToken();
-      alert("Session expired. Please log in again.");
+      message.error("Session expired. Please log in again.");
       return { error: { status: 401, data: "Unauthorized" } };
     }
   }
@@ -74,14 +74,14 @@ export const baseQueryWithReAuth: BaseQueryFn<
   // Handle 401 Unauthorized error (if the request fails after token refresh)
   if (result.error && result.error.status === 401) {
     clearToken();
-    alert("Unauthorized access. Redirecting to login.");
+    message.error("Unauthorized access. Redirecting to login.");
     // Optionally redirect to login page
     window.location.href = "/auth";
   }
 
   // Handle 403 Forbidden error
   if (result.error && result.error.status === 403) {
-    alert("Access forbidden.");
+    message.error("Access forbidden.");
     // Optionally handle forbidden access
     // window.location.href = PublicRoute.HOME;
   }

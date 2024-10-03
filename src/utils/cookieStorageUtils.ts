@@ -33,4 +33,5 @@ export function removeCookie(key: CookieKey): void {
 export function clearCookieStorage(): void {
   removeCookie(CookieStorageKey.ACCESS_TOKEN);
   removeCookie(CookieStorageKey.REFRESH_TOKEN);
+  removeCookie(CookieStorageKey.REFRESH_TOKEN_EXPIRY_TIME);
 }

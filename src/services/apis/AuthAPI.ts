@@ -6,6 +6,7 @@ import {
   ILoginResponse,
   IRegisterResponse,
   ILogin,
+  IRegister,
 } from "@/types";
 import { baseQueryWithReAuth } from "./baseQuery";
 
@@ -63,7 +64,10 @@ export const authAPI = createApi({
         body,
       }),
     }),
-    register: builder.mutation<IResCommon<IRegisterResponse>, Partial<IUser>>({
+    register: builder.mutation<
+      IResCommon<IRegisterResponse>,
+      Partial<IRegister>
+    >({
       query: (body) => ({
         url: `/auth/register`,
         method: "POST",

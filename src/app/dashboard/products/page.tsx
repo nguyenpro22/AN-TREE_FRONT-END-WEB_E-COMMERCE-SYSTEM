@@ -42,6 +42,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { IProduct } from "@/types/ProductType";
+import { useVendor } from "@/hooks/useVendorContext";
 
 export default function ProductsPage() {
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -50,7 +51,8 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDiscount, setFilterDiscount] = useState("all");
   const pageSize = 5;
-
+  const { vendor } = useVendor();
+  console.log("vendor", vendor);
   const {
     data: productsData,
     error,
@@ -59,6 +61,7 @@ export default function ProductsPage() {
     pageIndex: currentPage,
     pageSize: pageSize,
     sortColumn: sortColumn || undefined,
+    vendorName: vendor?.name,
     sortOrder: sortDirection,
     serchTerm: searchTerm,
     isSale: filterDiscount === "discount" ? true : undefined,
