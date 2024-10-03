@@ -35,7 +35,7 @@ export const orderApi = createApi({
       }),
       providesTags: ["Order"],
     }),
-    getOrderById: builder.query<OrderDetailResponse, string>({
+    getOrderById: builder.query<IResCommon<OrderDetailResponse>, string>({
       query: (orderId) => ({
         url: `/orders/${orderId}`,
       }),

@@ -28,6 +28,8 @@ import {
   useGetCategoriesQuery,
 } from "@/services/apis";
 import { getAccessToken, GetDataByToken } from "@/utils";
+import ColorfulButton from "@/components/Auth/ColorfulButton";
+import { CheckCircle2, Loader2 } from "lucide-react";
 
 const modules = {
   toolbar: {
@@ -368,12 +370,16 @@ export default function ProductForm() {
 
           {/* Submit button - full width */}
           <div className="col-span-12">
-            <Button
-              type="submit"
-              className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded"
-            >
-              Thêm Sản Phẩm
-            </Button>
+            <ColorfulButton
+              icon={isLoadingCreateProduct ? Loader2 : CheckCircle2}
+              label={
+                isLoadingCreateProduct
+                  ? "Đang thêm sản phẩm..."
+                  : "Thêm sản phẩm"
+              }
+              disabled={isLoadingCreateProduct}
+              className="w-full"
+            />
           </div>
         </form>
       </CardContent>
