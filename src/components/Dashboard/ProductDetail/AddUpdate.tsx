@@ -72,10 +72,16 @@ const formSchema = z.object({
   name: z.string().min(3, "Tên sản phẩm phải có ít nhất 3 ký tự"),
   price: z.number().positive("Giá phải là số dương"),
   description: z.string().optional(),
-  sku: z.string().min(1, "Mã SKU là bắt buộc"),
+  sku: z
+    .union([z.string(), z.number()])
+    .transform((val) => val.toString())
+    .optional(),
   sold: z.number().nonnegative("Số lượng đã bán không thể âm"),
-  productImageCover: z.array(z.any()).min(1, "Ảnh bìa là bắt buộc"),
-  productImages: z.array(z.any()).min(1, "Cần ít nhất 1 ảnh sản phẩm"),
+  productImageCover: z.array(z.any()).min(1, "Ảnh bìa là bắt buộc").optional(),
+  productImages: z
+    .array(z.any())
+    .min(1, "Cần ít nhất 1 ảnh sản phẩm")
+    .optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -108,6 +114,11 @@ export default function ProductForm({ product }: ProductFormProps) {
       description: product?.description || "",
       sku: product?.sku || "",
       sold: product?.sold || 0,
+      productImageCover: product?.coverImage
+        ? [{ url: product.coverImage }]
+        : [],
+      productImages:
+        product?.productImageList?.map((img) => ({ url: img.imageUrl })) || [],
     },
   });
 
@@ -149,16 +160,6 @@ export default function ProductForm({ product }: ProductFormProps) {
         ];
         setProductImageCover(coverFile);
       }
-
-      if (product.productImageList) {
-        setProductImages(
-          product.productImageList.map((image, index) => ({
-            uid: index.toString(),
-            name: `image.${index}.png`,
-            url: image.imageUrl,
-          })) as UploadFile[]
-        );
-      }
     }
   }, [product, setValue]);
 
@@ -169,36 +170,57 @@ export default function ProductForm({ product }: ProductFormProps) {
     formData.append("name", data.name);
     formData.append("price", data.price.toString());
     formData.append("description", data.description || "");
-    formData.append("sku", data.sku);
+
+    // Only append sku if it's provided or if it's a new product
+    if (data.sku || !product) {
+      formData.append("sku", data.sku || "");
+    }
+
     formData.append("sold", data.sold.toString());
 
+    // Handle cover image
     if (productImageCover[0]?.originFileObj) {
       formData.append(
         "productImageCover",
         productImageCover[0].originFileObj,
         productImageCover[0].name
       );
+    } else if (product?.coverImage) {
+      formData.append("productImageCover", product.coverImage);
     }
 
-    productImages.forEach((image) => {
-      if (image.originFileObj) {
-        formData.append("productImages", image.originFileObj, image.name);
-      }
-    });
+    // Handle product images
+    if (productImages.length > 0) {
+      productImages.forEach((image) => {
+        if (image.originFileObj) {
+          formData.append("productImages", image.originFileObj, image.name);
+        }
+      });
+    }
 
     try {
-      const response = product
+      const isUpdate = !!product;
+
+      if (isUpdate) {
+        formData.append("id", product?.id || "");
+      }
+
+      const response = isUpdate
         ? await updateProduct({ id: product?.id || "", body: formData })
         : await createProduct(formData);
 
+      const successMessage = isUpdate
+        ? "Sản phẩm đã được cập nhật thành công"
+        : "Sản phẩm đã được thêm thành công";
+
       if (response.data?.isSuccess) {
-        message.success("Sản phẩm đã được thêm thành công");
+        message.success(successMessage);
       } else {
-        message.error("Không thể thêm sản phẩm");
+        message.error("Không thể cập nhật sản phẩm");
       }
     } catch (error) {
       console.error("Lỗi:", error);
-      message.error("Đã xảy ra lỗi khi thêm sản phẩm");
+      message.error("Đã xảy ra lỗi khi cập nhật sản phẩm");
     }
   };
 

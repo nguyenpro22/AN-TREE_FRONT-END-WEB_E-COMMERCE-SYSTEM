@@ -1,114 +1,81 @@
-import React, { useRef, useEffect, useState } from "react";
+"use client";
+
+import React, { useState } from "react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface ProductImageSliderProps {
   images: { imageUrl: string }[];
 }
 
-const ProductImageSlider: React.FC<ProductImageSliderProps> = ({ images }) => {
+export default function ProductImageSlider({
+  images,
+}: ProductImageSliderProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
-  const clonedImageList = [...images, images[0]];
 
   const handlePrevImage = () => {
-    if (currentImageIndex === 0) {
-      setIsTransitioning(false);
-      setCurrentImageIndex(clonedImageList.length - 1);
-      setTimeout(() => {
-        setIsTransitioning(true);
-        setCurrentImageIndex(images.length - 1);
-      }, 0);
-    } else {
-      setCurrentImageIndex((prevIndex) => prevIndex - 1);
-    }
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex > 0 ? prevIndex - 1 : images.length - 1
+    );
   };
 
   const handleNextImage = () => {
-    if (currentImageIndex === clonedImageList.length - 1) {
-      setIsTransitioning(false);
-      setCurrentImageIndex(0);
-      setTimeout(() => {
-        setIsTransitioning(true);
-        setCurrentImageIndex(1);
-      }, 0);
-    } else {
-      setCurrentImageIndex((prevIndex) => prevIndex + 1);
-    }
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex < images.length - 1 ? prevIndex + 1 : 0
+    );
   };
 
-  useEffect(() => {
-    if (sliderRef.current) {
-      sliderRef.current.style.transition = isTransitioning
-        ? "transform 0.5s ease-in-out"
-        : "none";
-      sliderRef.current.style.transform = `translateX(-${
-        currentImageIndex * (100 / clonedImageList.length)
-      }%)`;
-    }
-  }, [currentImageIndex, isTransitioning, clonedImageList.length]);
-
   return (
-    <div className="relative overflow-hidden w-full h-[400px]">
-      {clonedImageList.length > 0 && (
-        <div
-          ref={sliderRef}
-          className="flex h-full"
-          style={{ width: `${clonedImageList.length * 100}%` }}
-        >
-          {clonedImageList.map((img, index) => (
-            <div
-              key={index}
-              className="flex-shrink-0 w-full h-full relative"
-              style={{ flex: `0 0 ${100 / clonedImageList.length}%` }}
-            >
-              <Image
-                src={img?.imageUrl || ""}
-                alt={`Product Image ${index + 1}`}
-                fill
-                className="rounded-lg object-cover"
-              />
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="relative w-full max-w-3xl mx-auto">
+      {/* Main Image */}
+      <div className="aspect-[16/9] overflow-hidden rounded-lg bg-gray-100">
+        <Image
+          src={images[currentImageIndex]?.imageUrl || ""}
+          alt={`Product Image ${currentImageIndex + 1}`}
+          fill
+          className="object-cover transition-transform duration-500 ease-in-out transform "
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
+      </div>
+      {/* Navigation buttons */}
       <Button
         variant="outline"
         size="icon"
-        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80"
+        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white/90 transition-all duration-300 shadow-md"
         onClick={handlePrevImage}
       >
-        <ChevronLeft className="h-4 w-4" />
+        <ChevronLeft className="h-6 w-6" />
         <span className="sr-only">Previous image</span>
       </Button>
       <Button
         variant="outline"
         size="icon"
-        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80"
+        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white/90 transition-all duration-300 shadow-md"
         onClick={handleNextImage}
       >
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-6 w-6" />
         <span className="sr-only">Next image</span>
       </Button>
-      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2  pb-2 max-w-full">
+      {/* Thumbnail Images */}
+      <div className="mt-3 flex justify-center gap-3 overflow-x-auto py-2">
         {images.map((img, index) => (
           <button
             key={index}
-            className={`flex-shrink-0 border-2 ${
+            className={cn(
+              "flex-shrink-0 cursor-pointer overflow-hidden rounded-lg transition-all duration-300 p-1", // Add padding here
               index === currentImageIndex
-                ? "border-primary"
-                : "border-transparent"
-            }`}
+                ? "border-2 border-blue-500 shadow-lg transform scale-110"
+                : "border-2 border-transparent opacity-80 hover:opacity-100 hover:border-gray-300 hover:scale-105"
+            )}
             onClick={() => setCurrentImageIndex(index)}
           >
             <Image
               src={img?.imageUrl}
               alt={`Thumbnail ${index + 1}`}
-              width={50}
-              height={50}
+              width={60}
+              height={60}
               className="object-cover"
             />
           </button>
@@ -116,6 +83,4 @@ const ProductImageSlider: React.FC<ProductImageSliderProps> = ({ images }) => {
       </div>
     </div>
   );
-};
-
-export default ProductImageSlider;
+}
