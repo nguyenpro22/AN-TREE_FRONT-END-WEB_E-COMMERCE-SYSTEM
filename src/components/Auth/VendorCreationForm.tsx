@@ -25,6 +25,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCreateVendorMutation } from "@/services/apis";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import {
+  setAccessToken,
+  setRefreshToken,
+  setRefreshTokenExpiryTime,
+} from "@/utils";
 
 type VendorCreationFormInputs = {
   bankOwnerName: string;
@@ -84,7 +89,11 @@ export default function VendorCreationForm({
       } else {
         // Handle success
         setIsSuccess(true);
-
+        const { accessToken, refreshToken, refreshTokenExpiryTime } =
+          res.data.value;
+        setAccessToken(accessToken);
+        setRefreshToken(refreshToken);
+        setRefreshTokenExpiryTime(refreshTokenExpiryTime);
         const countdownTimer = setInterval(() => {
           setCountdown((prevCountdown) => {
             if (prevCountdown === 1) {

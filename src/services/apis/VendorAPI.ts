@@ -1,5 +1,5 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { IResCommon, IUser } from "@/types";
+import { ILoginResponse, IResCommon, IUser } from "@/types";
 import { baseQueryWithReAuth } from "./baseQuery";
 
 export const VendorAPI = createApi({
@@ -13,7 +13,7 @@ export const VendorAPI = createApi({
       }),
       providesTags: ["Vendor"],
     }),
-    createVendor: builder.mutation<IResCommon<string>, FormData>({
+    createVendor: builder.mutation<IResCommon<ILoginResponse>, FormData>({
       query: (body) => ({
         url: `/vendors`,
         method: "POST",
