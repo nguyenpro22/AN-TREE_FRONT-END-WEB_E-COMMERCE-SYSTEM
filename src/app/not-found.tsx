@@ -1,7 +1,7 @@
 import Page404 from "@/app/404/page";
 
-function NotFoundPage() {
+function Default() {
   return <Page404 />;
 }
 
-export default NotFoundPage;
+export default Default;

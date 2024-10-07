@@ -11,7 +11,12 @@ export default function NotFound() {
   const [typedText, setTypedText] = useState("");
   const fullText =
     "The page you're looking for doesn't exist or has been moved.";
-
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  useEffect(() => {
+    const top = Math.random() * 100;
+    const left = Math.random() * 100;
+    setPosition({ top, left });
+  }, []);
   useEffect(() => {
     let i = 0;
     const typingInterval = setInterval(() => {
@@ -47,8 +52,8 @@ export default function NotFound() {
             key={i}
             className="absolute w-1 h-1 bg-white rounded-full"
             style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
+              top: `${position.top}%`,
+              left: `${position.left}%`,
             }}
             animate={{
               y: [-20, 20, -20],
