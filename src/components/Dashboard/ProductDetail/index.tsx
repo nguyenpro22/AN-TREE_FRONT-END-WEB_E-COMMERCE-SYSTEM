@@ -23,6 +23,8 @@ import { IProductDetail } from "@/types";
 import ProductForm from "./AddUpdate";
 import { ImageSliderSkeleton } from "@/components/Skeleton";
 import ProductImageSlider from "./ImageSlider";
+import Back from "../Back";
+import { useRouter } from "next/navigation";
 
 interface ProductDetailsProps {
   product: IProductDetail;
@@ -31,6 +33,7 @@ interface ProductDetailsProps {
 export default function ProductDetails({ product }: ProductDetailsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 2000);
@@ -45,15 +48,15 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const totalReviews = product.productFeedbackList.length;
 
   if (isEditing) {
-    return <ProductForm product={product} />;
+    return (
+      <ProductForm product={product} onClick={() => setIsEditing(false)} />
+    );
   }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl bg-white">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-          {product.name}
-        </h1>
+        <Back onClick={() => router.back()} />
         <Button
           onClick={() => setIsEditing(true)}
           className="flex items-center space-x-2"
@@ -62,6 +65,9 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           <span>Edit Product</span>
         </Button>
       </div>
+      <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+        {product.name}
+      </h1>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Left Column - Product Details */}
         <div className="space-y-6">

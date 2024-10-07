@@ -27,9 +27,11 @@ import {
 } from "@/services/apis";
 import { getAccessToken, GetDataByToken } from "@/utils";
 import ColorfulButton from "@/components/Auth/ColorfulButton";
-import { CheckCircle2, Loader2, Plus } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, Plus } from "lucide-react";
 import { IProductDetail } from "@/types";
 import { RcFile } from "antd/es/upload";
+import Back from "../Back";
+import { useRouter } from "next/navigation";
 
 const modules = {
   toolbar: {
@@ -96,9 +98,10 @@ const getBase64 = (file: RcFile): Promise<string> =>
 
 interface ProductFormProps {
   product?: IProductDetail;
+  onClick: () => void;
 }
 
-export default function ProductForm({ product }: ProductFormProps) {
+export default function ProductForm({ product, onClick }: ProductFormProps) {
   const {
     register,
     handleSubmit,
@@ -128,6 +131,7 @@ export default function ProductForm({ product }: ProductFormProps) {
   const [previewImage, setPreviewImage] = useState("");
   const [previewTitle, setPreviewTitle] = useState("");
   const [updateProduct] = useUpdateProductMutation();
+  const router = useRouter();
   const token = getAccessToken();
   const vendorId = token
     ? (GetDataByToken(token) as { vendorId: string }).vendorId
@@ -272,9 +276,12 @@ export default function ProductForm({ product }: ProductFormProps) {
   return (
     <Card className="w-full max-w-7xl mx-auto shadow-lg">
       <CardHeader className="bg-primary text-primary-foreground">
-        <CardTitle className="">
-          {product ? "Chỉnh Sửa Sản Phẩm" : "Thêm Sản Phẩm Mới"}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <Back onClick={onClick} />
+          <CardTitle className="text-xl md:text-2xl font-bold">
+            {product ? "Chỉnh Sửa Sản Phẩm" : "Thêm Sản Phẩm Mới"}
+          </CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="p-6 pb-0">
         <form
