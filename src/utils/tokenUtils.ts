@@ -51,11 +51,9 @@ export const decodeJwt = (token: string | null) => {
 
 export const GetDataByToken = (token: string): unknown | null => {
   const decoded = decodeJwt(token);
-  const id = decoded?.id;
-  const membername = decoded?.membername;
-  const isAdmin = decoded?.isAdmin;
-  const name = decoded?.name;
-  return { id, name, isAdmin, membername };
+  const id = decoded?.UserId;
+  const vendorId = decoded?.VendorId;
+  return { id, vendorId };
 };
 
 export const rememberMe = (token: string, refreshToken: string): void => {
@@ -67,7 +65,11 @@ export const isRememberMe = (): boolean => {
   return getCookie(CookieStorageKey.REMEMBER_ME) ? true : false;
 };
 
-export const isTokenExpired = (expiryTime: Date): boolean => {
+export const isTokenExpired = (): boolean => {
+  const expiryTime = getRefreshTokenExpiryTime();
+  if (!expiryTime) {
+    return true;
+  }
   const timeRemaining = new Date(expiryTime).getTime() - Date.now();
   const threshold = 30 * 1000;
 

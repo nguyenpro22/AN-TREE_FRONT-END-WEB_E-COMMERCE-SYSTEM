@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Github } from "lucide-react";
@@ -11,22 +11,24 @@ import LoginForm from "@/components/Auth/LoginForm";
 import ColorfulButton from "@/components/Auth/ColorfulButton";
 import RegisterForm from "@/components/Auth/RegisterForm";
 import {
-  useGetVendorProfileQuery,
+  useLazyGetVendorProfileQuery,
   useLoginMutation,
   useRegisterMutation,
 } from "@/services/apis";
-import { ILogin, IRegister } from "@/types";
+import { ILogin, IRegister, IUser } from "@/types";
 import {
-  isRememberMe,
   rememberMe,
   setAccessToken,
   setRefreshToken,
   setRefreshTokenExpiryTime,
   removeCookie,
+  getAccessToken,
+  getRefreshToken,
 } from "@/utils";
 import { toast } from "react-hot-toast";
 import { CookieStorageKey } from "@/constants";
 import { useRouter } from "next/navigation";
+import { useVendor } from "@/hooks/useVendorContext";
 
 export default function Component() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -35,16 +37,8 @@ export default function Component() {
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const router = useRouter();
-
-  const { data: profile } = useGetVendorProfileQuery(undefined, {
-    skip: !isLoggedIn,
-  });
-
-  useEffect(() => {
-    if (isLoggedIn && profile?.isSuccess) {
-      router.push("/dashboard");
-    }
-  }, [isLoggedIn, profile, router]);
+  const { setVendor } = useVendor();
+  const [getProfile, { data: profile }] = useLazyGetVendorProfileQuery();
 
   const handleLogin = async (formData: ILogin) => {
     try {
@@ -54,24 +48,60 @@ export default function Component() {
         throw new Error(res.error.message);
       }
 
+      // Lưu token
       const { accessToken, refreshToken, refreshTokenExpiryTime } = res.value;
-      setAccessToken(accessToken);
-      setRefreshToken(refreshToken);
-      setRefreshTokenExpiryTime(refreshTokenExpiryTime);
+      storeTokens(accessToken, refreshToken, refreshTokenExpiryTime);
 
-      if (formData.isRememberMe) {
-        rememberMe(accessToken, refreshToken);
-      } else if (isRememberMe()) {
-        removeCookie(CookieStorageKey.REMEMBER_ME);
-      }
+      // Xử lý tùy chọn "Remember me"
+      handleRememberMe(formData.isRememberMe || false);
 
-      setIsLoggedIn(true);
-
-      toast.success("Login successful");
+      // Lấy profile vendor sau khi login
+      await fetchAndHandleProfile();
     } catch (error) {
-      console.log(error);
-
       toast.error("Wrong email or password");
+    }
+  };
+
+  // Tách logic lưu trữ token vào một hàm riêng
+  const storeTokens = (
+    accessToken: string,
+    refreshToken: string,
+    refreshTokenExpiryTime: string
+  ) => {
+    setAccessToken(accessToken);
+    setRefreshToken(refreshToken);
+    setRefreshTokenExpiryTime(refreshTokenExpiryTime);
+  };
+
+  // Xử lý tùy chọn "Remember me"
+  const handleRememberMe = (isRememberMe: boolean) => {
+    if (isRememberMe) {
+      rememberMe(getAccessToken() ?? "", getRefreshToken() ?? "");
+    } else {
+      removeCookie(CookieStorageKey.REMEMBER_ME);
+    }
+  };
+
+  // Lấy và xử lý profile vendor
+  const fetchAndHandleProfile = async () => {
+    const profileRes = await getProfile();
+
+    if (
+      profileRes?.isError &&
+      "status" in profileRes.error &&
+      profileRes.error.status === 403
+    ) {
+      toast.error("Your account does not have permission to access");
+      return;
+    }
+
+    if (profileRes?.data?.isSuccess) {
+      setVendor(profileRes.data.value as IUser); // Lưu vendor profile vào context
+      toast.success("Login successful");
+      router.push("/dashboard");
+    } else {
+      setIsLoggedIn(true);
+      toast.success("Login successful, please complete your profile");
     }
   };
 

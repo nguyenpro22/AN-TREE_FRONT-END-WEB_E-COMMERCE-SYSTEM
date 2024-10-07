@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useGetProductsQuery } from "@/services/apis/ProductAPI";
 import {
   Table,
   TableBody,
@@ -22,7 +23,6 @@ import {
   SortDescIcon,
   StarIcon,
   PlusIcon,
-  FilterIcon,
   RefreshCcwIcon,
 } from "lucide-react";
 import {
@@ -32,122 +32,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  sku: number;
-  sold: number;
-  discountSold: number;
-  discountPercent: number;
-  coverImage: string;
-  productFeedbackList: Array<{
-    rate: number;
-    total: number;
-  }>;
-}
-
-const products: Product[] = [
-  {
-    id: "464e9b11-2e5f-4d88-917a-fe4ba1f863e5",
-    name: "Premium Headphones",
-    price: 250000,
-    sku: 8,
-    sold: 17,
-    discountSold: 225000,
-    discountPercent: 10,
-    coverImage: "/placeholder.svg",
-    productFeedbackList: [
-      {
-        rate: 4.5,
-        total: 28,
-      },
-    ],
-  },
-  {
-    id: "5204358b-a057-4302-9321-f97b7e5d4493",
-    name: "Wireless Mouse",
-    price: 150000,
-    sku: 15,
-    sold: 32,
-    discountSold: 150000,
-    discountPercent: 0,
-    coverImage: "/placeholder.svg",
-    productFeedbackList: [
-      {
-        rate: 4.2,
-        total: 45,
-      },
-    ],
-  },
-  {
-    id: "a482f427-c208-4159-8fab-f22891de0e6d",
-    name: "4K Monitor",
-    price: 3500000,
-    sku: 5,
-    sold: 7,
-    discountSold: 2975000,
-    discountPercent: 15,
-    coverImage: "/placeholder.svg",
-    productFeedbackList: [
-      {
-        rate: 4.8,
-        total: 12,
-      },
-    ],
-  },
-  {
-    id: "96a79c4f-dd05-4e62-83bc-f036999fa1b4",
-    name: "Ergonomic Keyboard",
-    price: 450000,
-    sku: 20,
-    sold: 25,
-    discountSold: 405000,
-    discountPercent: 10,
-    coverImage: "/placeholder.svg",
-    productFeedbackList: [
-      {
-        rate: 4.3,
-        total: 36,
-      },
-    ],
-  },
-  {
-    id: "539fda92-e604-4089-9e07-eebc781ab96f",
-    name: "Wireless Earbuds",
-    price: 180000,
-    sku: 30,
-    sold: 50,
-    discountSold: 180000,
-    discountPercent: 0,
-    coverImage: "/placeholder.svg",
-    productFeedbackList: [
-      {
-        rate: 4.1,
-        total: 72,
-      },
-    ],
-  },
-];
+import { IProduct } from "@/types/ProductType";
+import { useVendor } from "@/hooks/useVendorContext";
 
 export default function ProductsPage() {
-  const [sortColumn, setSortColumn] = useState<keyof Product | null>(null);
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDiscount, setFilterDiscount] = useState("all");
   const pageSize = 5;
+  const { vendor } = useVendor();
+  const {
+    data: productsData,
+    error,
+    isLoading,
+  } = useGetProductsQuery({
+    pageIndex: currentPage,
+    pageSize: pageSize,
+    sortColumn: sortColumn || undefined,
+    vendorName: vendor?.name,
+    sortOrder: sortDirection,
+    serchTerm: searchTerm,
+    isSale: filterDiscount === "discount" ? true : undefined,
+  });
 
-  const handleSort = (column: keyof Product) => {
+  const handleSort = (column: string) => {
     if (column === sortColumn) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -156,31 +66,13 @@ export default function ProductsPage() {
     }
   };
 
-  const sortedProducts = [...products].sort((a, b) => {
-    if (!sortColumn) return 0;
-    if (a[sortColumn] < b[sortColumn]) return sortDirection === "asc" ? -1 : 1;
-    if (a[sortColumn] > b[sortColumn]) return sortDirection === "asc" ? 1 : -1;
-    return 0;
-  });
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading products</div>;
 
-  const filteredProducts = sortedProducts
-    .filter((product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .filter((product) => {
-      if (filterDiscount === "all") return true;
-      if (filterDiscount === "discount") return product.discountPercent > 0;
-      if (filterDiscount === "no-discount")
-        return product.discountPercent === 0;
-      return true;
-    });
+  const products = productsData?.value?.items || [];
+  const totalProducts = productsData?.value?.totalCount || 0;
 
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
-
-  const SortIcon = ({ column }: { column: keyof Product }) => {
+  const SortIcon = ({ column }: { column: keyof IProduct }) => {
     if (sortColumn !== column) return null;
     return sortDirection === "asc" ? (
       <SortAscIcon className="ml-2 h-4 w-4" />
@@ -206,7 +98,7 @@ export default function ProductsPage() {
                 <SearchIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                 <Input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder="Tìm kiếm sản phẩm..."
                   className="pl-8"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -214,7 +106,7 @@ export default function ProductsPage() {
               </div>
               <Button variant="secondary" size="sm">
                 <RefreshCcwIcon className="mr-2 h-4 w-4" />
-                Refresh
+                Làm mới
               </Button>
               <div className="flex space-x-2">
                 <Link href="/dashboard/products/new">
@@ -226,30 +118,15 @@ export default function ProductsPage() {
               </div>
               <Select value={filterDiscount} onValueChange={setFilterDiscount}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by discount" />
+                  <SelectValue placeholder="Lọc theo khuyến mãi" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Products</SelectItem>
-                  <SelectItem value="discount">With Discount</SelectItem>
-                  <SelectItem value="no-discount">No Discount</SelectItem>
+                  <SelectItem value="all">Tất cả sản phẩm</SelectItem>
+                  <SelectItem value="discount">Có khuyến mãi</SelectItem>
+                  <SelectItem value="no-discount">Không khuyến mãi</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <FilterIcon className="mr-2 h-4 w-4" />
-                  More Filters
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuLabel>Filter Options</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Price Range</DropdownMenuItem>
-                <DropdownMenuItem>Rating</DropdownMenuItem>
-                <DropdownMenuItem>Stock Status</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
           <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
             <Table>
@@ -291,71 +168,69 @@ export default function ProductsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedProducts.map((product) => (
-                  <TableRow key={product.id} className="hover:bg-gray-50">
+                {products.map((product) => (
+                  <TableRow key={product?.id} className="hover:bg-gray-50">
                     <TableCell>
                       <Image
-                        src={product.coverImage}
-                        alt={product.name}
+                        src={product?.coverImage}
+                        alt={product?.name}
                         width={50}
                         height={50}
                         className="rounded-md object-cover"
                       />
                     </TableCell>
                     <TableCell className="font-medium">
-                      {product.name}
+                      {product?.name}
                     </TableCell>
                     <TableCell>
                       <span className="font-semibold text-green-600">
-                        {product.price.toLocaleString()} VND
+                        {product?.price.toLocaleString()} VND
                       </span>
-                      {product.discountPercent > 0 && (
+                      {product?.discountPercent > 0 && (
                         <span className="ml-2 text-sm text-gray-500 line-through">
                           {(
-                            product.price /
-                            (1 - product.discountPercent / 100)
+                            product?.price /
+                            (1 - product?.discountPercent / 100)
                           ).toFixed(0)}{" "}
                           VND
                         </span>
                       )}
                     </TableCell>
-                    <TableCell>{product.sku}</TableCell>
+                    <TableCell>{product?.sku}</TableCell>
                     <TableCell>
                       <Badge
                         variant="secondary"
                         className="bg-blue-100 text-blue-800"
                       >
-                        {product.sold}
+                        {product?.sold}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge
                         className={`${getDiscountColor(
-                          product.discountPercent
+                          product?.discountPercent
                         )} px-2 py-1`}
                       >
-                        {product.discountPercent}%
+                        {product?.discountPercent}%
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center">
                         <StarIcon className="mr-1 h-4 w-4 text-yellow-400" />
                         <span className="font-medium">
-                          {product.productFeedbackList[0]?.rate.toFixed(1)}
-                        </span>
-                        <span className="ml-1 text-sm text-gray-500">
-                          ({product.productFeedbackList[0]?.total})
+                          {product?.rating.toFixed(1)}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="bg-purple-50 text-purple-700 hover:bg-purple-100"
-                      >
-                        Edit
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Link href={`/dashboard/products/${product?.id}`}>
+                          <Button variant="secondary" size="sm">
+                            <PlusIcon className="mr-2 h-4 w-4" />
+                            Chi Tiết
+                          </Button>
+                        </Link>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -365,12 +240,12 @@ export default function ProductsPage() {
           <div className="mt-4 flex justify-between items-center">
             <p className="text-sm text-gray-600">
               Showing {(currentPage - 1) * pageSize + 1} to{" "}
-              {Math.min(currentPage * pageSize, filteredProducts.length)} of{" "}
-              {filteredProducts.length} products
+              {Math.min(currentPage * pageSize, totalProducts)} of{" "}
+              {totalProducts} products
             </p>
             <Pagination
               current={currentPage}
-              total={filteredProducts.length}
+              total={totalProducts}
               pageSize={pageSize}
               onChange={(page) => setCurrentPage(page)}
               showSizeChanger={false}

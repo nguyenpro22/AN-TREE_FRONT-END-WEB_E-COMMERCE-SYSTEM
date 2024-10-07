@@ -14,32 +14,17 @@ import {
   CalendarIcon,
   CreditCardIcon,
   MapPinIcon,
-  PhoneIcon,
-  UserIcon,
-  MailIcon,
+  MessageSquareIcon,
+  StarIcon,
+  PackageIcon,
   ClipboardIcon,
 } from "lucide-react";
 import { formatCurrency } from "@/utils/formatters";
-import { getStatusByCode, Order, OrderStatus } from "@/types";
+import { getStatusByCode } from "@/types";
+import Image from "next/image";
 import toast from "react-hot-toast";
-
-const order: Order = {
-  id: "3eda9572-b953-4bb7-8d0a-eac855c42f5d",
-  address: "123 Main St, Anytown, AN 12345",
-  note: "Please leave the package at the front door",
-  total: 20000,
-  status: 2,
-  isFeedback: false,
-  createdOnUtc: "2024-09-28T18:29:15.98459+00:00",
-  discount: 1000,
-  user: {
-    email: "user@example.com",
-    username: "johndoe",
-    firstname: "John",
-    lastname: "Doe",
-    phonenumber: "+1 (555) 123-4567",
-  },
-};
+import { useParams } from "next/navigation";
+import { useGetOrderByIdQuery } from "@/services/apis";
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
@@ -63,14 +48,47 @@ const OrderStatusBadge: React.FC<{ status: number }> = ({ status }) => {
 
   return (
     <span
-      className={`px-2 py-1 rounded-full ${statusInfo.bg_Color} ${statusInfo.txt_Color}`}
+      className={`px-3 py-1 rounded-full text-sm font-semibold ${statusInfo.bg_Color} ${statusInfo.txt_Color}`}
     >
       {statusInfo.description}
     </span>
   );
 };
 
+const StarRating: React.FC<{ rating: number }> = ({ rating }) => {
+  return (
+    <div className="flex space-x-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <StarIcon
+          key={star}
+          className={`h-5 w-5 ${
+            star <= rating ? "text-yellow-400" : "text-gray-300"
+          }`}
+          fill={star <= rating ? "currentColor" : "none"}
+        />
+      ))}
+    </div>
+  );
+};
+
 export default function OrderDetailCard() {
+  const { id } = useParams();
+  const { data: OrderDetail, isLoading } = useGetOrderByIdQuery(id as string);
+
+  if (isLoading)
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
+  if (!OrderDetail)
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Order not found
+      </div>
+    );
+  const order = OrderDetail.value;
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
       toast.success(`${label} has been copied to your clipboard.`);
@@ -78,106 +96,170 @@ export default function OrderDetailCard() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
       <h1 className="text-4xl font-bold mb-6 text-primary">Order Details</h1>
-      <Card className="shadow-lg border-t-4 border-primary">
-        <CardHeader className="bg-primary/5">
+      <Card className="shadow-xl border-t-4 border-primary rounded-lg overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 p-6">
           <CardTitle className="text-2xl flex justify-between items-center">
-            <span>Order #{order.id.slice(0, 8)}</span>
-            <OrderStatusBadge status={order.status} />
+            <span className="flex items-center">
+              <PackageIcon className="mr-2 h-6 w-6 text-primary" />
+              Order #{order?.id?.slice(0, 8)}
+            </span>
+            <OrderStatusBadge status={order?.status} />
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold mb-4 text-primary">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Order Information */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-primary flex items-center">
+                <CalendarIcon className="mr-2 h-5 w-5" />
                 Order Information
               </h2>
-              <div className="flex items-center justify-between bg-secondary/10 p-3 rounded-lg">
-                <div className="flex items-center">
-                  <CalendarIcon className="mr-2 h-5 w-5 text-primary" />
+              <div className="bg-gray-50 p-4 rounded-lg shadow-sm space-y-4">
+                <div className="flex justify-between items-center">
                   <span className="font-medium">Ordered on:</span>
+                  <span>{formatDate(order?.createdOnUtc)}</span>
                 </div>
-                <span>{formatDate(order.createdOnUtc)}</span>
-              </div>
-              <div className="flex items-center justify-between bg-secondary/10 p-3 rounded-lg">
-                <div className="flex items-center">
-                  <CreditCardIcon className="mr-2 h-5 w-5 text-primary" />
+                <div className="flex justify-between items-center">
                   <span className="font-medium">Total:</span>
-                </div>
-                <span>${formatCurrency(order.total)}</span>
-              </div>
-              {order.discount && (
-                <div className="flex items-center justify-between bg-green-100 p-3 rounded-lg">
-                  <div className="flex items-center">
-                    <span className="font-medium text-green-700">
-                      Discount:
-                    </span>
-                  </div>
-                  <span className="text-green-700">
-                    -${formatCurrency(order.discount)}
+                  <span className="text-lg font-bold text-primary">
+                    ${formatCurrency(order?.total)}
                   </span>
                 </div>
-              )}
+              </div>
             </div>
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold mb-4 text-primary">
-                Customer Information
+
+            {/* Order Details */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-primary flex items-center">
+                <CreditCardIcon className="mr-2 h-5 w-5" />
+                Order Details
               </h2>
-              <div className="flex items-center justify-between bg-secondary/10 p-3 rounded-lg">
-                <div className="flex items-center">
-                  <UserIcon className="mr-2 h-5 w-5 text-primary" />
-                  <span className="font-medium">Name:</span>
-                </div>
-                <span>{`${order.user.firstname} ${order.user.lastname}`}</span>
-              </div>
-              <div className="flex items-center justify-between bg-secondary/10 p-3 rounded-lg">
-                <div className="flex items-center">
-                  <PhoneIcon className="mr-2 h-5 w-5 text-primary" />
-                  <span className="font-medium">Phone:</span>
-                </div>
-                <span>{order.user.phonenumber}</span>
-              </div>
-              <div className="flex items-center justify-between bg-secondary/10 p-3 rounded-lg">
-                <div className="flex items-center">
-                  <MailIcon className="mr-2 h-5 w-5 text-primary" />
-                  <span className="font-medium">Email:</span>
-                </div>
-                <span className="truncate max-w-[200px]">
-                  {order.user.email}
-                </span>
+              <div className="space-y-4">
+                {order?.orderDetails?.map((detail) => (
+                  <div
+                    key={detail.id}
+                    className="bg-gray-50 p-4 rounded-lg shadow-sm"
+                  >
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-medium">{detail.productName}</span>
+                      <span className="bg-primary/10 px-2 py-1 rounded-full text-sm font-semibold text-primary">
+                        x{detail.productQuantity}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span>Price per item:</span>
+                      <span>${formatCurrency(detail.productPrice)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm font-semibold mt-2 pt-2 border-t">
+                      <span>Subtotal:</span>
+                      <span>
+                        $
+                        {formatCurrency(
+                          detail.productPrice * detail.productQuantity
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-          <Separator className="my-6" />
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="address">
-              <AccordionTrigger>Shipping Address</AccordionTrigger>
-              <AccordionContent>
-                <div className="flex items-center justify-between p-3 bg-secondary/10 rounded-lg">
-                  <div className="flex items-center">
-                    <MapPinIcon className="mr-2 h-5 w-5 text-primary" />
-                    <span>{order.address}</span>
+
+          <Separator className="my-8" />
+
+          {/* Additional Sections */}
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            {order?.address && (
+              <AccordionItem
+                value="address"
+                className="border rounded-lg overflow-hidden"
+              >
+                <AccordionTrigger className="text-lg font-semibold text-primary p-4 hover:bg-gray-50">
+                  <MapPinIcon className="mr-2 h-5 w-5" />
+                  Shipping Address
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="flex items-center justify-between p-4 bg-gray-50">
+                    <span>{order?.address}</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(order.address, "Address")}
+                    >
+                      <ClipboardIcon className="h-4 w-4 mr-2" />
+                      Copy
+                    </Button>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => copyToClipboard(order.address, "Address")}
-                  >
-                    <ClipboardIcon className="h-4 w-4 mr-2" />
-                    Copy
-                  </Button>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="notes">
-              <AccordionTrigger>Additional Notes</AccordionTrigger>
-              <AccordionContent>
-                <p className="text-muted-foreground p-3 bg-secondary/10 rounded-lg">
-                  {order.note || "No additional notes provided."}
-                </p>
-              </AccordionContent>
-            </AccordionItem>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+            {order?.note && (
+              <AccordionItem
+                value="notes"
+                className="border rounded-lg overflow-hidden"
+              >
+                <AccordionTrigger className="text-lg font-semibold text-primary p-4 hover:bg-gray-50">
+                  <MessageSquareIcon className="mr-2 h-5 w-5" />
+                  Additional Notes
+                </AccordionTrigger>
+                <AccordionContent>
+                  <p className="p-4 bg-gray-50 text-gray-600">{order?.note}</p>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+            {order?.isFeedback &&
+              order?.orderDetails[0]?.orderDetailFeedback && (
+                <AccordionItem
+                  value="feedback"
+                  className="border rounded-lg overflow-hidden"
+                >
+                  <AccordionTrigger className="text-lg font-semibold text-primary p-4 hover:bg-gray-50">
+                    <StarIcon className="mr-2 h-5 w-5" />
+                    Customer Feedback
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="p-4 bg-gray-50 space-y-4">
+                      <div>
+                        <span className="font-medium">Feedback:</span>
+                        <p className="mt-1 text-gray-600">
+                          {order?.orderDetails[0]?.orderDetailFeedback?.content}
+                        </p>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="font-medium mr-2">Rating:</span>
+                        <StarRating
+                          rating={
+                            order?.orderDetails[0]?.orderDetailFeedback?.rating
+                          }
+                        />
+                      </div>
+                      <div>
+                        <span className="font-medium">Images:</span>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2">
+                          {order.orderDetails[0].orderDetailFeedback.orderDetailFeedbackMedia.map(
+                            (imageUrl: string, index: number) => (
+                              <div
+                                key={index}
+                                className="relative aspect-square rounded-lg overflow-hidden shadow-sm"
+                              >
+                                <Image
+                                  src={imageUrl}
+                                  alt={`Feedback image ${index + 1}`}
+                                  layout="fill"
+                                  objectFit="cover"
+                                  className="hover:scale-105 transition-transform duration-300"
+                                />
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              )}
           </Accordion>
         </CardContent>
       </Card>

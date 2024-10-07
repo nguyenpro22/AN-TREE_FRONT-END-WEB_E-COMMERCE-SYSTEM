@@ -1,4 +1,4 @@
-import { IProduct, IProductListResponse, IResCommon } from "@/types";
+import { IProduct, IListResponse, IResCommon, IProductDetail } from "@/types";
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReAuth } from "./baseQuery";
 
@@ -8,11 +8,12 @@ export const productApi = createApi({
   baseQuery: baseQueryWithReAuth,
   endpoints: (builder) => ({
     getProducts: builder.query<
-      IResCommon<IProductListResponse>,
+      IResCommon<IListResponse<IProduct>>,
       {
         pageIndex?: number;
         pageSize?: number;
         categoryId?: string;
+        vendorName?: string;
         sortColumn?: string;
         sortOrder?: "asc" | "desc";
         serchTerm?: string;
@@ -23,6 +24,7 @@ export const productApi = createApi({
         pageIndex = 1,
         pageSize = 10,
         categoryId,
+        vendorName,
         sortColumn,
         sortOrder = "asc",
         serchTerm,
@@ -34,6 +36,7 @@ export const productApi = createApi({
           pageIndex,
           pageSize,
           categoryId,
+          vendorName,
           sortColumn,
           sortOrder,
           isSale,
@@ -41,13 +44,13 @@ export const productApi = createApi({
       }),
       providesTags: ["Product"],
     }),
-    getProductById: builder.query<IResCommon<IProduct>, string>({
+    getProductById: builder.query<IResCommon<IProductDetail>, string>({
       query: (id) => ({
         url: `/products/${id}`,
       }),
       providesTags: ["Product"],
     }),
-    createProduct: builder.mutation<IResCommon<IProduct>, Partial<IProduct>>({
+    createProduct: builder.mutation<IResCommon<IProduct>, Partial<FormData>>({
       query: (body) => ({
         url: "/products",
         method: "POST",
@@ -57,7 +60,7 @@ export const productApi = createApi({
     }),
     updateProduct: builder.mutation<
       IResCommon<IProduct>,
-      { id: string; body: Partial<IProduct> }
+      { id: string; body: Partial<FormData> }
     >({
       query: ({ id, body }) => ({
         url: `/products/${id}`,

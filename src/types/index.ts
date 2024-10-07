@@ -7,3 +7,4 @@ export * from "./ProductType";
 export * from "./CategoryType";
 export * from "./OrderType";
 export * from "./FeedbackType";
+export * from "./VendorType";

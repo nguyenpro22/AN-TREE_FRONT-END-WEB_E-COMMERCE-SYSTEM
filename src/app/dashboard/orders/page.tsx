@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { format, parseISO } from "date-fns";
 import {
@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getStatusByCode, Order, OrderStatus } from "@/types";
+import { getStatusByCode, Order } from "@/types";
 import { formatCurrency } from "@/utils";
 import { Pagination } from "antd";
 import {
@@ -39,60 +39,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-const orders: Order[] = [
-  {
-    id: "3eda9572-b953-4bb7-8d0a-eac855c42f5d",
-    address: "123 Main St, Anytown, AN 12345",
-    note: "Please leave at the door",
-    total: 20000,
-    status: OrderStatus[3].status,
-    isFeedback: false,
-    createdOnUtc: "2024-09-28T18:29:15.98459+00:00",
-    discount: null,
-    user: {
-      email: "john.doe@example.com",
-      username: "johndoe",
-      firstname: "John",
-      lastname: "Doe",
-      phonenumber: "+1 (555) 123-4567",
-    },
-  },
-  {
-    id: "5fba9572-c953-4cc7-9d0b-fbc855c42f5e",
-    address: "456 Elm St, Somewhere, SW 67890",
-    note: "",
-    total: 15000,
-    status: OrderStatus[2].status,
-    isFeedback: true,
-    createdOnUtc: "2024-09-29T10:15:30.12345+00:00",
-    discount: 1000,
-    user: {
-      email: "jane.smith@example.com",
-      username: "janesmith",
-      firstname: "Jane",
-      lastname: "Smith",
-      phonenumber: "+1 (555) 987-6543",
-    },
-  },
-  {
-    id: "7abc1234-d456-4ee8-af0c-0de123f45g6h",
-    address: "789 Oak St, Elsewhere, EL 13579",
-    note: "Call before delivery",
-    total: 30000,
-    status: OrderStatus[1].status,
-    isFeedback: false,
-    createdOnUtc: "2024-09-30T14:45:00.67890+00:00",
-    discount: null,
-    user: {
-      email: "bob.johnson@example.com",
-      username: "bobjohnson",
-      firstname: "Bob",
-      lastname: "Johnson",
-      phonenumber: "+1 (555) 246-8135",
-    },
-  },
-];
+import { useGetOrdersQuery } from "@/services/apis/OrderAPI";
 
 const formatDate = (dateString: string): string => {
   const date = parseISO(dateString);
@@ -121,37 +68,35 @@ export default function EnhancedOrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 5;
 
-  const sortedOrders = [...orders].sort((a, b) => {
-    const aValue = a[sortColumn];
-    const bValue = b[sortColumn];
-    return sortDirection === "asc"
-      ? (aValue ?? "") < (bValue ?? "")
-        ? -1
-        : 1
-      : (aValue ?? "") > (bValue ?? "")
-      ? -1
-      : 1;
+  const {
+    data: ordersData,
+    error,
+    isLoading,
+  } = useGetOrdersQuery({
+    pageIndex: currentPage,
+    pageSize: ordersPerPage,
+    sortColumn: sortColumn,
+    sortOrder: sortDirection,
   });
 
-  const filteredOrders = sortedOrders.filter((order) => {
-    const matchesSearch =
-      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `${order.user.firstname} ${order.user.lastname}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" ||
-      getStatusByCode(order.status)?.description.toLowerCase() ===
-        statusFilter.toLowerCase();
-    return matchesSearch && matchesStatus;
-  });
+  const totalOrders = ordersData?.value?.totalCount || 0;
 
-  const indexOfLastOrder = currentPage * ordersPerPage;
-  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-  const currentOrders = filteredOrders.slice(
-    indexOfFirstOrder,
-    indexOfLastOrder
-  );
+  const filteredOrders = useMemo(() => {
+    const orders = ordersData?.value?.items || [];
+
+    return orders.filter((order) => {
+      const matchesSearch =
+        order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        `${order.user.firstname} ${order.user.lastname}`
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === "all" ||
+        getStatusByCode(order.status)?.description.toLowerCase() ===
+          statusFilter.toLowerCase();
+      return matchesSearch && matchesStatus;
+    });
+  }, [searchTerm, statusFilter]);
 
   const handleSort = (column: keyof Order) => {
     if (column === sortColumn) {
@@ -166,6 +111,19 @@ export default function EnhancedOrdersPage() {
     setCurrentPage(page);
   };
 
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilter = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading orders</div>;
+
   return (
     <div className="p-6 bg-gradient-to-br from-purple-50 to-blue-50">
       <Card className="mb-6 shadow-lg">
@@ -178,11 +136,11 @@ export default function EnhancedOrdersPage() {
                 placeholder="Search orders..."
                 className="pl-8 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearch}
               />
             </div>
             <div className="flex space-x-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={handleStatusFilter}>
                 <SelectTrigger className="w-full sm:w-40 border rounded-md shadow-sm">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
@@ -263,7 +221,7 @@ export default function EnhancedOrdersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {currentOrders.map((order) => (
+                {filteredOrders.map((order) => (
                   <TableRow
                     key={order.id}
                     className="hover:bg-secondary/10 transition duration-200"
@@ -289,13 +247,13 @@ export default function EnhancedOrdersPage() {
           </div>
           <div className="mt-4 flex justify-between items-center">
             <p className="text-sm text-gray-600">
-              Showing {indexOfFirstOrder + 1} to{" "}
-              {Math.min(indexOfLastOrder, filteredOrders.length)} of{" "}
-              {filteredOrders.length} orders
+              Showing {(currentPage - 1) * ordersPerPage + 1} to{" "}
+              {Math.min(currentPage * ordersPerPage, totalOrders)} of{" "}
+              {totalOrders} orders
             </p>
             <Pagination
               current={currentPage}
-              total={filteredOrders.length}
+              total={totalOrders}
               pageSize={ordersPerPage}
               onChange={handlePageChange}
               showSizeChanger={false}

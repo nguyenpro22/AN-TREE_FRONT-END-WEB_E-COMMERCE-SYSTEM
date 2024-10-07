@@ -1,11 +1,11 @@
 // authAPI.ts
 import { createApi } from "@reduxjs/toolkit/query/react";
 import {
-  IUser,
   IResCommon,
   ILoginResponse,
   IRegisterResponse,
   ILogin,
+  IRegister,
 } from "@/types";
 import { baseQueryWithReAuth } from "./baseQuery";
 
@@ -24,6 +24,16 @@ export const authAPI = createApi({
       query: () => ({
         url: `/auth/logout`,
         method: "POST",
+      }),
+    }),
+    refreshToken: builder.mutation<
+      IResCommon<ILoginResponse>,
+      { accessToken: string; refreshToken: string }
+    >({
+      query: (body) => ({
+        url: `/auth/refresh_token`,
+        method: "POST",
+        body,
       }),
     }),
     forgetPassword: builder.mutation<IResCommon<string>, { email: string }>({
@@ -53,7 +63,10 @@ export const authAPI = createApi({
         body,
       }),
     }),
-    register: builder.mutation<IResCommon<IRegisterResponse>, Partial<IUser>>({
+    register: builder.mutation<
+      IResCommon<IRegisterResponse>,
+      Partial<IRegister>
+    >({
       query: (body) => ({
         url: `/auth/register`,
         method: "POST",

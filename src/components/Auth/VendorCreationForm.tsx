@@ -11,7 +11,7 @@ import {
   User,
   Building,
   CreditCard,
-  Image,
+  ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCreateVendorMutation } from "@/services/apis";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 type VendorCreationFormInputs = {
   bankOwnerName: string;
@@ -52,6 +54,9 @@ export default function VendorCreationForm({
   } = useForm<VendorCreationFormInputs>();
   const [isSuccess, setIsSuccess] = useState(false);
   const [createVendor] = useCreateVendorMutation();
+
+  const [countdown, setCountdown] = useState(3);
+  const router = useRouter();
   const onSubmit: SubmitHandler<VendorCreationFormInputs> = async (data) => {
     try {
       const formData = new FormData();
@@ -68,13 +73,35 @@ export default function VendorCreationForm({
       formData.append("coverImage", data.coverImage[0]);
 
       const res = await createVendor(formData);
-      console.log(res);
 
-      setIsSuccess(true);
+      if (res.error) {
+        if ("status" in res.error && res.error.status === 500) {
+          toast.error("Vendor name already exists");
+        } else {
+          console.error("An unknown server error occurred:", res);
+          alert("An unknown server error occurred. Please try again later.");
+        }
+      } else {
+        // Handle success
+        setIsSuccess(true);
+
+        const countdownTimer = setInterval(() => {
+          setCountdown((prevCountdown) => {
+            if (prevCountdown === 1) {
+              clearInterval(countdownTimer);
+              router.push("/dashboard");
+            }
+            return prevCountdown - 1;
+          });
+        }, 1000);
+      }
     } catch (error) {
       console.error("Error creating vendor:", error);
     }
   };
+  React.useEffect(() => {
+    return () => clearTimeout(countdown);
+  }, [isSuccess, countdown]);
 
   if (isSuccess) {
     return (
@@ -85,7 +112,8 @@ export default function VendorCreationForm({
         <CheckCircle2 className="h-4 w-4 text-green-600" />
         <AlertTitle>Success</AlertTitle>
         <AlertDescription>
-          Your vendor account has been created successfully.
+          Your vendor account has been created successfully. Redirecting to
+          dashboard in {`${countdown}`} seconds
         </AlertDescription>
       </Alert>
     );
@@ -100,10 +128,10 @@ export default function VendorCreationForm({
         <Card className="w-full shadow-lg border-t-4 border-purple-500">
           <CardHeader className="space-y-1 bg-gradient-to-r from-purple-100 to-blue-100 rounded-t-lg">
             <CardTitle className="text-3xl font-bold text-purple-800">
-              Create Vendor Account
+              Tạo Tài khoản Nhà cung cấp
             </CardTitle>
             <CardDescription className="text-lg text-purple-600">
-              Fill in the details to create a new vendor account.
+              Điền thông tin chi tiết để tạo tài khoản nhà cung cấp mới.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
@@ -114,42 +142,42 @@ export default function VendorCreationForm({
                   className="data-[state=active]:bg-white data-[state=active]:text-purple-700"
                 >
                   <User className="w-4 h-4 mr-2" />
-                  Personal
+                  Cá nhân
                 </TabsTrigger>
                 <TabsTrigger
                   value="address"
                   className="data-[state=active]:bg-white data-[state=active]:text-purple-700"
                 >
                   <Building className="w-4 h-4 mr-2" />
-                  Address
+                  Địa chỉ
                 </TabsTrigger>
                 <TabsTrigger
                   value="bank"
                   className="data-[state=active]:bg-white data-[state=active]:text-purple-700"
                 >
                   <CreditCard className="w-4 h-4 mr-2" />
-                  Bank
+                  Ngân hàng
                 </TabsTrigger>
                 <TabsTrigger
                   value="images"
                   className="data-[state=active]:bg-white data-[state=active]:text-purple-700"
                 >
-                  <Image className="w-4 h-4 mr-2" />
-                  Images
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  Hình ảnh
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="personal">
                 <div className="space-y-4 mt-4">
                   <div className="space-y-2">
                     <Label htmlFor="vendorName" className="text-purple-700">
-                      Vendor Name
+                      Tên Nhà cung cấp
                     </Label>
                     <Input
                       id="vendorName"
-                      placeholder="Enter vendor name"
+                      placeholder="Nhập tên nhà cung cấp"
                       className="border-purple-200 focus:border-purple-500"
                       {...register("vendorName", {
-                        required: "Vendor name is required",
+                        required: "Tên nhà cung cấp là bắt buộc",
                       })}
                     />
                     {errors.vendorName && (
@@ -160,15 +188,15 @@ export default function VendorCreationForm({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="vendorEmail" className="text-purple-700">
-                      Vendor Email
+                      Email Nhà cung cấp
                     </Label>
                     <Input
                       id="vendorEmail"
                       type="email"
-                      placeholder="Enter vendor email"
+                      placeholder="Nhập email nhà cung cấp"
                       className="border-purple-200 focus:border-purple-500"
                       {...register("vendorEmail", {
-                        required: "Vendor email is required",
+                        required: "Email nhà cung cấp là bắt buộc",
                       })}
                     />
                     {errors.vendorEmail && (
@@ -179,15 +207,15 @@ export default function VendorCreationForm({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phoneNumber" className="text-purple-700">
-                      Phone Number
+                      Số điện thoại
                     </Label>
                     <Input
                       id="phoneNumber"
                       type="tel"
-                      placeholder="Enter phone number"
+                      placeholder="Nhập số điện thoại"
                       className="border-purple-200 focus:border-purple-500"
                       {...register("phoneNumber", {
-                        required: "Phone number is required",
+                        required: "Số điện thoại là bắt buộc",
                       })}
                     />
                     {errors.phoneNumber && (
@@ -202,14 +230,14 @@ export default function VendorCreationForm({
                 <div className="space-y-4 mt-4">
                   <div className="space-y-2">
                     <Label htmlFor="address" className="text-purple-700">
-                      Address
+                      Địa chỉ
                     </Label>
                     <Input
                       id="address"
-                      placeholder="Enter address"
+                      placeholder="Nhập địa chỉ"
                       className="border-purple-200 focus:border-purple-500"
                       {...register("address", {
-                        required: "Address is required",
+                        required: "Địa chỉ là bắt buộc",
                       })}
                     />
                     {errors.address && (
@@ -221,13 +249,15 @@ export default function VendorCreationForm({
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="city" className="text-purple-700">
-                        City
+                        Thành phố
                       </Label>
                       <Input
                         id="city"
-                        placeholder="Enter city"
+                        placeholder="Nhập tên thành phố"
                         className="border-purple-200 focus:border-purple-500"
-                        {...register("city", { required: "City is required" })}
+                        {...register("city", {
+                          required: "Thành phố là bắt buộc",
+                        })}
                       />
                       {errors.city && (
                         <span className="text-sm text-red-500">
@@ -237,14 +267,14 @@ export default function VendorCreationForm({
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="province" className="text-purple-700">
-                        Province
+                        Tỉnh
                       </Label>
                       <Input
                         id="province"
-                        placeholder="Enter province"
+                        placeholder="Nhập tên tỉnh"
                         className="border-purple-200 focus:border-purple-500"
                         {...register("province", {
-                          required: "Province is required",
+                          required: "Tỉnh là bắt buộc",
                         })}
                       />
                       {errors.province && (
@@ -260,14 +290,14 @@ export default function VendorCreationForm({
                 <div className="space-y-4 mt-4">
                   <div className="space-y-2">
                     <Label htmlFor="bankName" className="text-purple-700">
-                      Bank Name
+                      Tên ngân hàng
                     </Label>
                     <Input
                       id="bankName"
-                      placeholder="Enter bank name"
+                      placeholder="Nhập tên ngân hàng"
                       className="border-purple-200 focus:border-purple-500"
                       {...register("bankName", {
-                        required: "Bank name is required",
+                        required: "Tên ngân hàng là bắt buộc",
                       })}
                     />
                     {errors.bankName && (
@@ -278,14 +308,14 @@ export default function VendorCreationForm({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="bankOwnerName" className="text-purple-700">
-                      Bank Owner Name
+                      Tên chủ tài khoản
                     </Label>
                     <Input
                       id="bankOwnerName"
-                      placeholder="Enter bank owner name"
+                      placeholder="Nhập tên chủ tài khoản"
                       className="border-purple-200 focus:border-purple-500"
                       {...register("bankOwnerName", {
-                        required: "Bank owner name is required",
+                        required: "Tên chủ tài khoản là bắt buộc",
                       })}
                     />
                     {errors.bankOwnerName && (
@@ -299,14 +329,14 @@ export default function VendorCreationForm({
                       htmlFor="bankAccountNumber"
                       className="text-purple-700"
                     >
-                      Bank Account Number
+                      Số tài khoản ngân hàng
                     </Label>
                     <Input
                       id="bankAccountNumber"
-                      placeholder="Enter bank account number"
+                      placeholder="Nhập số tài khoản ngân hàng"
                       className="border-purple-200 focus:border-purple-500"
                       {...register("bankAccountNumber", {
-                        required: "Bank account number is required",
+                        required: "Số tài khoản ngân hàng là bắt buộc",
                       })}
                     />
                     {errors.bankAccountNumber && (
@@ -321,7 +351,7 @@ export default function VendorCreationForm({
                 <div className="space-y-4 mt-4">
                   <div className="space-y-2">
                     <Label htmlFor="avatarImage" className="text-purple-700">
-                      Avatar Image
+                      Ảnh đại diện
                     </Label>
                     <Input
                       id="avatarImage"
@@ -330,7 +360,7 @@ export default function VendorCreationForm({
                       alt=""
                       className="border-purple-200 focus:border-purple-500 file:bg-purple-100 file:text-purple-700 file:border-0 file:rounded-md file:px-4 file:py-2 file:mr-4 file:hover:bg-purple-200 file:transition-colors"
                       {...register("avatarImage", {
-                        required: "Avatar image is required",
+                        required: "Ảnh đại diện là bắt buộc",
                       })}
                     />
                     {errors.avatarImage && (
@@ -341,7 +371,7 @@ export default function VendorCreationForm({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="coverImage" className="text-purple-700">
-                      Cover Image
+                      Ảnh bìa
                     </Label>
                     <Input
                       id="coverImage"
@@ -350,7 +380,7 @@ export default function VendorCreationForm({
                       alt=""
                       className="border-purple-200 focus:border-purple-500 file:bg-purple-100 file:text-purple-700 file:border-0 file:rounded-md file:px-4 file:py-2 file:mr-4 file:hover:bg-purple-200 file:transition-colors"
                       {...register("coverImage", {
-                        required: "Cover image is required",
+                        required: "Ảnh bìa là bắt buộc",
                       })}
                     />
                     {errors.coverImage && (
@@ -373,12 +403,12 @@ export default function VendorCreationForm({
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Creating Vendor...
+                Đang tạo nhà cung cấp...
               </>
             ) : (
               <>
                 <CheckCircle2 className="mr-2 h-5 w-5" />
-                Create Vendor
+                Tạo nhà cung cấp
               </>
             )}
           </Button>
@@ -387,7 +417,7 @@ export default function VendorCreationForm({
             variant="outline"
             className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-50"
           >
-            Logout
+            Đăng xuất
           </Button>
         </div>
       </form>

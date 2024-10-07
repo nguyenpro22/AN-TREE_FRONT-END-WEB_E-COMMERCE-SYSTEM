@@ -1,46 +1,25 @@
 "use client";
+
 import React from "react";
+import "react-quill/dist/quill.snow.css";
+import { useGetProductByIdQuery } from "@/services/apis";
 import { useParams } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import ProductDetails from "@/components/Dashboard/ProductDetail";
+import { IProductDetail } from "@/types";
+import ProductForm from "@/components/Dashboard/ProductDetail/AddUpdate";
 
-export default function ProductForm() {
-  const { id } = useParams();
-  const isNewProduct = id === "new";
-
-  // TODO: Implement form logic, image upload, and rich text editor
-
-  return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold mb-4">
-        {isNewProduct ? "Add New Product" : "Edit Product"}
-      </h1>
-      <form className="space-y-4">
-        <div>
-          <label htmlFor="name">Product Name</label>
-          <Input id="name" placeholder="Enter product name" />
-        </div>
-        <div>
-          <label htmlFor="price">Price</label>
-          <Input id="price" type="number" placeholder="Enter price" />
-        </div>
-        <div>
-          <label htmlFor="description">Description</label>
-          <Textarea id="description" placeholder="Enter product description" />
-        </div>
-        {/* TODO: Add image upload component */}
-        {/* TODO: Add rich text editor component */}
-        <div>
-          <label htmlFor="discount">Discount</label>
-          <Input
-            id="discount"
-            type="number"
-            placeholder="Enter discount percentage"
-          />
-        </div>
-        <Button type="submit">Save Product</Button>
-      </form>
-    </div>
-  );
+export default function Component() {
+  const params = useParams();
+  const productId = params.id as string;
+  const { data: product, isLoading } = useGetProductByIdQuery(productId);
+  if (productId == "new") {
+    return <ProductForm />;
+  }
+  if (product) {
+    return <ProductDetails product={product?.value as IProductDetail} />;
+  }
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  return <div>Product not found</div>;
 }
