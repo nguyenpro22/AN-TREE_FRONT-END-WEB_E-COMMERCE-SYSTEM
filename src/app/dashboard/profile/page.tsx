@@ -70,9 +70,12 @@ function ProfileHeader({ vendor }: { vendor: IUser | null }) {
   return (
     <div className="relative h-60 md:h-80">
       <Image
-        src={vendor?.coverImage || "/placeholder.svg?height=320&width=640"}
+        src={vendor?.coverImage || "/default-cover-image.jpg"}
         alt="Cover"
         className="w-full h-full object-cover"
+        width={900}
+        height={300}
+        priority
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
       <div className="absolute bottom-4 left-4 flex items-end space-x-4">
