@@ -57,7 +57,7 @@ export default function ProductsPage() {
     pageIndex: currentPage,
     pageSize: pageSize,
     sortColumn: sortColumn || undefined,
-    vendorName: vendor?.name,
+    vendorName: vendor?.name || "",
     sortOrder: sortDirection,
     serchTerm: searchTerm,
     isSale: filterDiscount === "discount" ? true : undefined,
