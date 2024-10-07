@@ -47,6 +47,20 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
   const [verifyOTP, { isLoading: isLoadingVerifyOTP }] = useVerifyOTPMutation();
   const [resetPassword] = useResetPasswordMutation();
   const newPassword = watch("newPassword");
+  const [countdown, setCountdown] = useState(120);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prevCountdown) => {
+        if (prevCountdown <= 0) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prevCountdown - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (newPassword) {
@@ -71,17 +85,24 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
         return "bg-gray-300";
     }
   };
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
 
   const getPasswordStrengthText = () => {
     switch (passwordStrengthValue) {
       case 0:
-        return "Very Weak";
+        return "Rất yếu";
       case 1:
-        return "Weak";
+        return "Yếu";
       case 2:
-        return "Medium";
+        return "Trung bình";
       case 3:
-        return "Strong";
+        return "Mạnh";
       default:
         return "";
     }
@@ -93,8 +114,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
       if (!res.data?.isSuccess) {
         throw new Error(res.data?.error.message);
       }
-      const message = res.data?.value;
-      toast.success(message);
+      toast.success("Chúng tôi đã gửi OTP đến email của bạn");
       setStep("otp");
     } catch (error) {
       console.log(error);
@@ -152,9 +172,9 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="Nhập email của bạn"
                   className="pl-10 bg-white border-2 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
-                  {...register("email", { required: "Email is required" })}
+                  {...register("email", { required: "Email bắt buộc" })}
                 />
               </div>
               {errors.email && (
@@ -173,53 +193,67 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
               ) : (
                 <Mail className="mr-2 h-4 w-4" />
               )}
-              {isSubmitting ? "Sending..." : "Send OTP"}
+              {isSubmitting ? "Đang gửi..." : "Gửi OTP"}
             </Button>
           </form>
         );
       case "otp":
         return (
-          <form onSubmit={handleSubmit(onSubmitOTP)} className="space-y-4">
-            <div className="space-y-2">
-              <Label
-                htmlFor="otp"
-                className="text-sm font-medium text-gray-700"
+          <div className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmitOTP)} className="space-y-4">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="otp"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  OTP
+                </Label>
+                <Input
+                  id="otp"
+                  type="text"
+                  placeholder="Nhập mã OTP 5 chữ số"
+                  className="text-center text-2xl tracking-widest bg-white border-2 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                  maxLength={5}
+                  {...register("otp", {
+                    required: "OTP là bắt buộc",
+                    pattern: {
+                      value: /^[0-9]{5}$/,
+                      message: "OTP phải có 5 chữ số",
+                    },
+                  })}
+                />
+                {errors.otp && (
+                  <span className="text-sm text-red-500">
+                    {errors.otp.message as string}
+                  </span>
+                )}
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-2 px-4 rounded-md transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
+                disabled={isLoadingVerifyOTP || countdown === 0}
               >
-                OTP
-              </Label>
-              <Input
-                id="otp"
-                type="text"
-                placeholder="Enter 5-digit OTP"
-                className="text-center text-2xl tracking-widest bg-white border-2 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
-                maxLength={5}
-                {...register("otp", {
-                  required: "OTP is required",
-                  pattern: {
-                    value: /^[0-9]{5}$/,
-                    message: "OTP must be 5 digits",
-                  },
-                })}
-              />
-              {errors.otp && (
-                <span className="text-sm text-red-500">
-                  {errors.otp.message}
-                </span>
+                {isLoadingVerifyOTP ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                )}
+                {isSubmitting ? "Đang xác thực.." : "Xác thực OTP"}
+              </Button>
+            </form>
+            <div className="text-center">
+              {countdown > 0 ? (
+                <p className="text-sm text-gray-600">
+                  Mã OTP hết hạn trong:{" "}
+                  <span className="font-medium">{formatTime(countdown)}</span>
+                </p>
+              ) : (
+                <p className="text-sm text-red-500">
+                  Mã OTP đã hết hạn. Vui lòng yêu cầu mã mới.
+                </p>
               )}
             </div>
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-2 px-4 rounded-md transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
-              disabled={isLoadingVerifyOTP}
-            >
-              {isLoadingVerifyOTP ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-              )}
-              {isSubmitting ? "Verifying..." : "Verify OTP"}
-            </Button>
-          </form>
+          </div>
         );
       case "changePassword":
         return (
@@ -232,17 +266,17 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
                 htmlFor="newPassword"
                 className="text-sm font-medium text-gray-700"
               >
-                New Password
+                Mật khẩu mới
               </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input
                   id="newPassword"
                   type="password"
-                  placeholder="Enter new password"
+                  placeholder="Nhập mật khẩu mới"
                   className="pl-10 bg-white border-2 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
                   {...register("newPassword", {
-                    required: "New password is required",
+                    required: "Mật khẩu mới là bắt buộc",
                   })}
                 />
               </div>
@@ -253,9 +287,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
               )}
               <div className="mt-2">
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm text-gray-500">
-                    Password Strength
-                  </span>
+                  <span className="text-sm text-gray-500">Độ mạnh</span>
                   <span className="text-sm font-medium text-gray-700">
                     {getPasswordStrengthText()}
                   </span>
@@ -273,20 +305,20 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
                 htmlFor="confirmPassword"
                 className="text-sm font-medium text-gray-700"
               >
-                Confirm Password
+                Nhập lại mật khẩu
               </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input
                   id="confirmPassword"
                   type="password"
-                  placeholder="Confirm new password"
+                  placeholder="Nhập lại mật khẩu mới"
                   className="pl-10 bg-white border-2 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
                   {...register("confirmPassword", {
-                    required: "Please confirm your password",
+                    required: "Nhập lại mật khẩu là bắt buộc",
                     validate: (val: string) => {
                       if (watch("newPassword") != val) {
-                        return "Your passwords do not match";
+                        return "Mật khẩu không khớp";
                       }
                     },
                   })}
@@ -308,7 +340,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
               ) : (
                 <CheckCircle2 className="mr-2 h-4 w-4" />
               )}
-              {isSubmitting ? "Changing..." : "Change Password"}
+              {isSubmitting ? "Đổi mật khẩu..." : "Đổi mật khẩu"}
             </Button>
           </form>
         );
@@ -317,10 +349,10 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
           <Alert className="bg-green-100 border-green-500 rounded-md">
             <CheckCircle2 className="h-5 w-5 text-green-600" />
             <AlertTitle className="text-green-800 text-lg font-semibold">
-              Success
+              Thành công
             </AlertTitle>
             <AlertDescription className="text-green-700">
-              Your password has been successfully changed.
+              Mật khẩu đã được thay đổi thành công.
             </AlertDescription>
             <Button
               variant="outline"
@@ -328,7 +360,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
               className="w-full mt-4 border-2 border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold py-2 px-4 rounded-md transition duration-300 ease-in-out"
             >
               <ChevronLeft className="mr-2 h-4 w-4" />
-              Back to Login
+              Trở lại trang đăng nhập
             </Button>
           </Alert>
         );
@@ -355,7 +387,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBack }) => {
               className="w-full mt-4 border-2 border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold py-2 px-4 rounded-md transition duration-300 ease-in-out"
             >
               <ChevronLeft className="mr-2 h-4 w-4" />
-              Back to Login
+              Trở lại trang đăng nhập
             </Button>
           )}
         </CardContent>

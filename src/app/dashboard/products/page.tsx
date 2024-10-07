@@ -23,7 +23,6 @@ import {
   SortDescIcon,
   StarIcon,
   PlusIcon,
-  FilterIcon,
   RefreshCcwIcon,
 } from "lucide-react";
 import {
@@ -33,14 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { IProduct } from "@/types/ProductType";
 import { useVendor } from "@/hooks/useVendorContext";
 
@@ -52,7 +43,6 @@ export default function ProductsPage() {
   const [filterDiscount, setFilterDiscount] = useState("all");
   const pageSize = 5;
   const { vendor } = useVendor();
-  console.log("vendor", vendor);
   const {
     data: productsData,
     error,
@@ -108,7 +98,7 @@ export default function ProductsPage() {
                 <SearchIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                 <Input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder="Tìm kiếm sản phẩm..."
                   className="pl-8"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -116,7 +106,7 @@ export default function ProductsPage() {
               </div>
               <Button variant="secondary" size="sm">
                 <RefreshCcwIcon className="mr-2 h-4 w-4" />
-                Refresh
+                Làm mới
               </Button>
               <div className="flex space-x-2">
                 <Link href="/dashboard/products/new">
@@ -128,30 +118,15 @@ export default function ProductsPage() {
               </div>
               <Select value={filterDiscount} onValueChange={setFilterDiscount}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by discount" />
+                  <SelectValue placeholder="Lọc theo khuyến mãi" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Products</SelectItem>
-                  <SelectItem value="discount">With Discount</SelectItem>
-                  <SelectItem value="no-discount">No Discount</SelectItem>
+                  <SelectItem value="all">Tất cả sản phẩm</SelectItem>
+                  <SelectItem value="discount">Có khuyến mãi</SelectItem>
+                  <SelectItem value="no-discount">Không khuyến mãi</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <FilterIcon className="mr-2 h-4 w-4" />
-                  More Filters
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuLabel>Filter Options</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Price Range</DropdownMenuItem>
-                <DropdownMenuItem>Rating</DropdownMenuItem>
-                <DropdownMenuItem>Stock Status</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
           <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
             <Table>
@@ -248,13 +223,14 @@ export default function ProductsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="bg-purple-50 text-purple-700 hover:bg-purple-100"
-                      >
-                        Edit
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Link href={`/dashboard/products/${product?.id}`}>
+                          <Button variant="secondary" size="sm">
+                            <PlusIcon className="mr-2 h-4 w-4" />
+                            Chi Tiết
+                          </Button>
+                        </Link>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

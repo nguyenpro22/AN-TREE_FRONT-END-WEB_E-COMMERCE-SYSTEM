@@ -20,7 +20,7 @@ import {
   ClipboardIcon,
 } from "lucide-react";
 import { formatCurrency } from "@/utils/formatters";
-import { getStatusByCode, OrderDetailResponse } from "@/types";
+import { getStatusByCode } from "@/types";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { useParams } from "next/navigation";

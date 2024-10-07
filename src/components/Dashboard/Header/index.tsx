@@ -13,9 +13,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Bell, Settings, LogOut, User } from "lucide-react";
 import { useNavigation } from "@/hooks/useNavigation";
+import { useRouter } from "next/navigation";
 
 export function Header() {
   const { currentPage } = useNavigation();
+  const router = useRouter();
   return (
     <header className="bg-gradient-to-r from-gray-50 to-white border-b px-6 py-4 flex items-center justify-between">
       <div className="flex items-center space-x-4">
@@ -47,7 +49,7 @@ export function Header() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>

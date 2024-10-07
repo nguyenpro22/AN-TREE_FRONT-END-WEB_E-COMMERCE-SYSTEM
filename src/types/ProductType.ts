@@ -18,7 +18,7 @@ export interface IProductDetail {
   name: string;
   price: number;
   description: string;
-  sku: number;
+  sku: string;
   sold: number;
   discountSold: number;
   discountPercent: number;

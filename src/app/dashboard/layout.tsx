@@ -17,7 +17,7 @@ export default function DashboardLayout({
     if (!token) {
       router.push("/auth");
     }
-  }, []);
+  }, [router]);
 
   return (
     <div className="flex h-screen bg-gray-100">

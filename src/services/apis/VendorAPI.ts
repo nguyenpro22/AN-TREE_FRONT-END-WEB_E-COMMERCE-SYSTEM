@@ -20,6 +20,13 @@ export const VendorAPI = createApi({
         body,
       }),
     }),
+    updateVendor: builder.mutation<IResCommon<string>, FormData>({
+      query: (body) => ({
+        url: `/vendors`,
+        method: "PUT",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -27,4 +34,5 @@ export const {
   useGetVendorProfileQuery,
   useLazyGetVendorProfileQuery,
   useCreateVendorMutation,
+  useUpdateVendorMutation,
 } = VendorAPI;

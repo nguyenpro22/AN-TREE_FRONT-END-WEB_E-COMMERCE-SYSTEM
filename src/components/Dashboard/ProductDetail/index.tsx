@@ -1,19 +1,23 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
-import { Star } from "lucide-react";
+import { Star, Edit } from "lucide-react"; // Thêm icon Edit
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button"; // Thêm button từ UI components
 import ProductImageSlider from "./ImageSlider";
 import { IProductDetail } from "@/types";
+import ProductForm from "./AddUpdate";
 
 interface ProductDetailsProps {
   product: IProductDetail;
 }
 
 export default function ProductDetails({ product }: ProductDetailsProps) {
+  const [isEditing, setIsEditing] = useState(false); // State để kiểm soát hiển thị form
+
   const averageRating =
     product.productFeedbackList.reduce(
       (acc, feedback) => acc + feedback.rate,
@@ -23,6 +27,11 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     (acc, feedback) => acc + feedback.total,
     0
   );
+
+  // Khi đang trong chế độ sửa, hiển thị form ProductForm
+  if (isEditing) {
+    return <ProductForm product={product} />;
+  }
 
   return (
     <div className="container mx-auto px-6 py-12">
@@ -37,9 +46,20 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           {/* Tên sản phẩm và đánh giá */}
           <Card className="rounded-lg shadow-md">
             <CardContent className="p-6">
-              <h1 className="text-4xl font-bold mb-3 text-gray-900">
-                Tên sản Phẩm: {product.name}
-              </h1>
+              <div className="flex justify-between items-center">
+                <h1 className="text-4xl font-bold mb-3 text-gray-900">
+                  Tên sản phẩm: {product.name}
+                </h1>
+                {/* Nút Sửa */}
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditing(true)} // Khi nhấn, chuyển sang chế độ sửa
+                  className="flex items-center"
+                >
+                  <Edit className="mr-2 w-4 h-4" />
+                  Sửa
+                </Button>
+              </div>
               <div className="flex items-center space-x-3">
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
@@ -107,7 +127,6 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             </CardContent>
           </Card>
 
-          {/* Thông tin nhà cung cấp */}
           <Card className="rounded-lg shadow-md">
             <CardContent className="p-6">
               <h3 className="font-semibold text-xl mb-4 text-gray-800">

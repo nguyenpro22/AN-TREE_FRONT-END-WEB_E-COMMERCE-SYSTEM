@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getStatusByCode, Order, OrderStatus } from "@/types";
+import { getStatusByCode, Order } from "@/types";
 import { formatCurrency } from "@/utils";
 import { Pagination } from "antd";
 import {
@@ -79,10 +79,11 @@ export default function EnhancedOrdersPage() {
     sortOrder: sortDirection,
   });
 
-  const orders = ordersData?.value?.items || [];
   const totalOrders = ordersData?.value?.totalCount || 0;
 
   const filteredOrders = useMemo(() => {
+    const orders = ordersData?.value?.items || [];
+
     return orders.filter((order) => {
       const matchesSearch =
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -95,7 +96,7 @@ export default function EnhancedOrdersPage() {
           statusFilter.toLowerCase();
       return matchesSearch && matchesStatus;
     });
-  }, [orders, searchTerm, statusFilter]);
+  }, [searchTerm, statusFilter]);
 
   const handleSort = (column: keyof Order) => {
     if (column === sortColumn) {

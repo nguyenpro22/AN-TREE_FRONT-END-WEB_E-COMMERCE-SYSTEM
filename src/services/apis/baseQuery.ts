@@ -1,12 +1,8 @@
-import { getRefreshTokenExpiryTime } from "./../../utils/tokenUtils";
-import { CookieStorageKey } from "@/constants";
 import { ILoginResponse, IResCommon } from "@/types";
 import {
   clearToken,
   getAccessToken,
-  getCookie,
   getRefreshToken,
-  isTokenExpired,
   setAccessToken,
   setRefreshToken,
   setRefreshTokenExpiryTime,
@@ -18,6 +14,14 @@ import {
   FetchBaseQueryError,
 } from "@reduxjs/toolkit/query";
 import { message } from "antd";
+
+// Utility function to handle token storage after refresh
+const handleTokenRefresh = (data: IResCommon<ILoginResponse>) => {
+  const { value } = data;
+  setAccessToken(value.accessToken);
+  setRefreshToken(value.refreshToken);
+  setRefreshTokenExpiryTime(value.refreshTokenExpiryTime);
+};
 
 // Base query with the default authorization header
 export const baseQuery = fetchBaseQuery({
@@ -37,54 +41,62 @@ export const baseQueryWithReAuth: BaseQueryFn<
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-  // Check if the refresh token is expired or if the access token is expired
-  if (getAccessToken()) {
-    const refreshResult = await baseQuery(
-      {
-        url: "/auth/refresh_token",
-        method: "POST",
-        body: {
-          accessToken: getAccessToken(),
-          refreshToken: getRefreshToken(),
+  let result = await baseQuery(args, api, extraOptions);
+
+  // Check if the request is unauthorized (401)
+  if (result.error?.status === 401) {
+    const accessToken = getAccessToken();
+    const refreshToken = getRefreshToken();
+
+    // If there is a token, attempt to refresh it
+    if (accessToken && refreshToken) {
+      const refreshResult = await baseQuery(
+        {
+          url: "/auth/refresh_token",
+          method: "POST",
+          body: { accessToken, refreshToken },
         },
-      },
-      api,
-      extraOptions
-    );
+        api,
+        extraOptions
+      );
 
-    if (refreshResult.data) {
-      // Update the tokens after a successful refresh
-      const { value } = refreshResult.data as IResCommon<ILoginResponse>;
-
-      // Set the new access token and refresh token
-      setAccessToken(value.accessToken);
-      setRefreshToken(value.refreshToken);
-      setRefreshTokenExpiryTime(value.refreshTokenExpiryTime);
+      if (refreshResult.data) {
+        // Update tokens on successful refresh
+        handleTokenRefresh(refreshResult.data as IResCommon<ILoginResponse>);
+        // Retry the original request
+        result = await baseQuery(args, api, extraOptions);
+      } else if (refreshResult.error?.status === 500) {
+        message.error("Session expired. Please log in again.");
+        redirectToLogin();
+        return { error: { status: 401, data: "Session expired" } };
+      }
     } else {
-      // If token refresh fails, clear tokens and handle unauthorized access
-      clearToken();
-      message.error("Session expired. Please log in again.");
-      return { error: { status: 401, data: "Unauthorized" } };
+      // If tokens are not available, clear them and redirect to login
+      handleUnauthorized();
     }
   }
 
-  // After refreshing the token, proceed with the original request
-  const result = await baseQuery(args, api, extraOptions);
-
-  // Handle 401 Unauthorized error (if the request fails after token refresh)
-  if (result.error && result.error.status === 401) {
-    clearToken();
-    message.error("Unauthorized access. Redirecting to login.");
-    // Optionally redirect to login page
-    window.location.href = "/auth";
+  // Handle Unauthorized (401) after token refresh
+  if (result.error?.status === 401) {
+    handleUnauthorized();
   }
 
-  // Handle 403 Forbidden error
-  if (result.error && result.error.status === 403) {
+  // Handle Forbidden (403) access
+  if (result.error?.status === 403) {
     message.error("Access forbidden.");
-    // Optionally handle forbidden access
-    // window.location.href = PublicRoute.HOME;
   }
 
   return result;
+};
+
+// Handle redirection to login and clear tokens
+const redirectToLogin = () => {
+  clearToken();
+  window.location.href = "/auth";
+};
+
+// Handle unauthorized access (401)
+const handleUnauthorized = () => {
+  message.error("Unauthorized access. Redirecting to login.");
+  redirectToLogin();
 };

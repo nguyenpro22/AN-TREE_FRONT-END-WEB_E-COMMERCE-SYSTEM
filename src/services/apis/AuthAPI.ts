@@ -1,7 +1,6 @@
 // authAPI.ts
 import { createApi } from "@reduxjs/toolkit/query/react";
 import {
-  IUser,
   IResCommon,
   ILoginResponse,
   IRegisterResponse,

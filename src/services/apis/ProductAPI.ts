@@ -60,7 +60,7 @@ export const productApi = createApi({
     }),
     updateProduct: builder.mutation<
       IResCommon<IProduct>,
-      { id: string; body: Partial<IProduct> }
+      { id: string; body: Partial<FormData> }
     >({
       query: ({ id, body }) => ({
         url: `/products/${id}`,

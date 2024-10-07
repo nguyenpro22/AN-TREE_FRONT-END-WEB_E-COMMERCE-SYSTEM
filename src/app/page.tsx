@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 
-const AuthComponent = dynamic(() => import("./auth/page"), { ssr: false });
 const DashboardComponent = dynamic(() => import("./dashboard/page"), {
   ssr: false,
 });
