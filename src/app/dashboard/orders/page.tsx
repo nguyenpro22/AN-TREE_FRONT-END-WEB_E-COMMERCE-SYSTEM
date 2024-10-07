@@ -1,14 +1,9 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { format, parseISO } from "date-fns";
-import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  SearchIcon,
-  Filter,
-} from "lucide-react";
+import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -21,25 +16,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getStatusByCode, Order } from "@/types";
 import { formatCurrency } from "@/utils";
-import { Pagination } from "antd";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useGetOrdersQuery } from "@/services/apis/OrderAPI";
+import { TableRowSkeleton } from "@/components/Skeleton";
 
 const formatDate = (dateString: string): string => {
   const date = parseISO(dateString);
@@ -64,7 +45,6 @@ export default function EnhancedOrdersPage() {
   const [sortColumn, setSortColumn] = useState<keyof Order>("createdOnUtc");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 5;
 
@@ -73,30 +53,41 @@ export default function EnhancedOrdersPage() {
     error,
     isLoading,
   } = useGetOrdersQuery({
-    pageIndex: currentPage,
-    pageSize: ordersPerPage,
+    pageIndex: 1,
+    pageSize: 1000, // Fetch a large number of orders to handle client-side pagination
     sortColumn: sortColumn,
     sortOrder: sortDirection,
   });
 
-  const totalOrders = ordersData?.value?.totalCount || 0;
-
   const filteredOrders = useMemo(() => {
-    const orders = ordersData?.value?.items || [];
+    if (!ordersData || !ordersData.value?.items) return [];
 
-    return orders.filter((order) => {
-      const matchesSearch =
-        order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        `${order.user.firstname} ${order.user.lastname}`
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        statusFilter === "all" ||
-        getStatusByCode(order.status)?.description.toLowerCase() ===
-          statusFilter.toLowerCase();
-      return matchesSearch && matchesStatus;
+    return ordersData.value.items.filter((order) => {
+      const searchString = `${order.id} ${order.user.firstname} ${
+        order.user.lastname
+      } ${order.total} ${
+        getStatusByCode(order.status)?.description
+      }`.toLowerCase();
+      return searchString.includes(searchTerm.toLowerCase());
     });
-  }, [searchTerm, statusFilter]);
+  }, [ordersData, searchTerm]);
+
+  const sortedOrders = useMemo(() => {
+    return [...filteredOrders].sort((a, b) => {
+      const aValue = a[sortColumn] ?? "";
+      const bValue = b[sortColumn] ?? "";
+      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [filteredOrders, sortColumn, sortDirection]);
+
+  const paginatedOrders = useMemo(() => {
+    const startIndex = (currentPage - 1) * ordersPerPage;
+    return sortedOrders.slice(startIndex, startIndex + ordersPerPage);
+  }, [sortedOrders, currentPage]);
+
+  const totalOrders = filteredOrders.length;
 
   const handleSort = (column: keyof Order) => {
     if (column === sortColumn) {
@@ -116,14 +107,6 @@ export default function EnhancedOrdersPage() {
     setCurrentPage(1);
   };
 
-  const handleStatusFilter = (value: string) => {
-    setStatusFilter(value);
-    setCurrentPage(1);
-  };
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading orders</div>;
-
   return (
     <div className="p-6 bg-gradient-to-br from-purple-50 to-blue-50">
       <Card className="mb-6 shadow-lg">
@@ -138,35 +121,6 @@ export default function EnhancedOrdersPage() {
                 value={searchTerm}
                 onChange={handleSearch}
               />
-            </div>
-            <div className="flex space-x-2">
-              <Select value={statusFilter} onValueChange={handleStatusFilter}>
-                <SelectTrigger className="w-full sm:w-40 border rounded-md shadow-sm">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="processing">Processing</SelectItem>
-                  <SelectItem value="shipped">Shipped</SelectItem>
-                  <SelectItem value="delivered">Delivered</SelectItem>
-                </SelectContent>
-              </Select>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Filter className="w-4 h-4 mr-2" />
-                    More Filters
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuLabel>Filter Options</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>Date Range</DropdownMenuItem>
-                  <DropdownMenuItem>Price Range</DropdownMenuItem>
-                  <DropdownMenuItem>Customer Type</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           </div>
           <div className="rounded-lg border shadow-sm overflow-hidden">
@@ -221,45 +175,83 @@ export default function EnhancedOrdersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.map((order) => (
-                  <TableRow
-                    key={order.id}
-                    className="hover:bg-secondary/10 transition duration-200"
-                  >
-                    <TableCell className="font-medium">
-                      {order.id.slice(0, 8)}
-                    </TableCell>
-                    <TableCell>{`${order.user.firstname} ${order.user.lastname}`}</TableCell>
-                    <TableCell>${formatCurrency(order.total)}</TableCell>
-                    <TableCell>{renderOrderStatus(order.status)}</TableCell>
-                    <TableCell>{formatDate(order.createdOnUtc)}</TableCell>
-                    <TableCell>
-                      <Button variant="link" asChild>
-                        <Link href={`/dashboard/orders/${order.id}`}>
-                          View Details
-                        </Link>
-                      </Button>
+                {isLoading ? (
+                  Array(ordersPerPage)
+                    .fill(0)
+                    .map((_, index) => <TableRowSkeleton key={index} />)
+                ) : error ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-red-500">
+                      Error loading orders
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : paginatedOrders.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="text-center text-gray-500"
+                    >
+                      No orders found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  paginatedOrders.map((order) => (
+                    <TableRow
+                      key={order.id}
+                      className="hover:bg-secondary/10 transition duration-200"
+                    >
+                      <TableCell className="font-medium">
+                        {order.id.slice(0, 8)}
+                      </TableCell>
+                      <TableCell>{`${order.user.firstname} ${order.user.lastname}`}</TableCell>
+                      <TableCell>${formatCurrency(order.total)}</TableCell>
+                      <TableCell>{renderOrderStatus(order.status)}</TableCell>
+                      <TableCell>{formatDate(order.createdOnUtc)}</TableCell>
+                      <TableCell>
+                        <Button variant="link" asChild>
+                          <Link href={`/dashboard/orders/${order.id}`}>
+                            View Details
+                          </Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
           <div className="mt-4 flex justify-between items-center">
             <p className="text-sm text-gray-600">
-              Showing {(currentPage - 1) * ordersPerPage + 1} to{" "}
-              {Math.min(currentPage * ordersPerPage, totalOrders)} of{" "}
-              {totalOrders} orders
+              {isLoading ? (
+                <Skeleton className="h-4 w-48" />
+              ) : (
+                `Showing ${(currentPage - 1) * ordersPerPage + 1} to ${Math.min(
+                  currentPage * ordersPerPage,
+                  totalOrders
+                )} of ${totalOrders} orders`
+              )}
             </p>
-            <Pagination
-              current={currentPage}
-              total={totalOrders}
-              pageSize={ordersPerPage}
-              onChange={handlePageChange}
-              showSizeChanger={false}
-              showQuickJumper={false}
-              size="small"
-            />
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1 || isLoading}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={
+                  currentPage * ordersPerPage >= totalOrders || isLoading
+                }
+                className="ml-2"
+              >
+                Next
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

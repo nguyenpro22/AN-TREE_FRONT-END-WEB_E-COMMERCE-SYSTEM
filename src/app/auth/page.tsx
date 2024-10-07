@@ -96,8 +96,9 @@ export default function Component() {
     }
 
     if (profileRes?.data?.isSuccess) {
-      setVendor(profileRes.data.value as IUser); // Lưu vendor profile vào context
+      setVendor(profileRes?.data?.value as IUser); // Lưu vendor profile vào context
       toast.success("Login successful");
+
       router.push("/dashboard");
     } else {
       setIsLoggedIn(true);

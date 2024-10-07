@@ -27,9 +27,11 @@ import {
 } from "@/services/apis";
 import { getAccessToken, GetDataByToken } from "@/utils";
 import ColorfulButton from "@/components/Auth/ColorfulButton";
-import { CheckCircle2, Loader2, Plus } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, Plus } from "lucide-react";
 import { IProductDetail } from "@/types";
 import { RcFile } from "antd/es/upload";
+import Back from "../Back";
+import { useRouter } from "next/navigation";
 
 const modules = {
   toolbar: {
@@ -72,10 +74,16 @@ const formSchema = z.object({
   name: z.string().min(3, "Tên sản phẩm phải có ít nhất 3 ký tự"),
   price: z.number().positive("Giá phải là số dương"),
   description: z.string().optional(),
-  sku: z.string().min(1, "Mã SKU là bắt buộc"),
+  sku: z
+    .union([z.string(), z.number()])
+    .transform((val) => val.toString())
+    .optional(),
   sold: z.number().nonnegative("Số lượng đã bán không thể âm"),
-  productImageCover: z.array(z.any()).min(1, "Ảnh bìa là bắt buộc"),
-  productImages: z.array(z.any()).min(1, "Cần ít nhất 1 ảnh sản phẩm"),
+  productImageCover: z.array(z.any()).min(1, "Ảnh bìa là bắt buộc").optional(),
+  productImages: z
+    .array(z.any())
+    .min(1, "Cần ít nhất 1 ảnh sản phẩm")
+    .optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -90,9 +98,10 @@ const getBase64 = (file: RcFile): Promise<string> =>
 
 interface ProductFormProps {
   product?: IProductDetail;
+  onClick: () => void;
 }
 
-export default function ProductForm({ product }: ProductFormProps) {
+export default function ProductForm({ product, onClick }: ProductFormProps) {
   const {
     register,
     handleSubmit,
@@ -108,6 +117,11 @@ export default function ProductForm({ product }: ProductFormProps) {
       description: product?.description || "",
       sku: product?.sku || "",
       sold: product?.sold || 0,
+      productImageCover: product?.coverImage
+        ? [{ url: product.coverImage }]
+        : [],
+      productImages:
+        product?.productImageList?.map((img) => ({ url: img.imageUrl })) || [],
     },
   });
 
@@ -117,6 +131,7 @@ export default function ProductForm({ product }: ProductFormProps) {
   const [previewImage, setPreviewImage] = useState("");
   const [previewTitle, setPreviewTitle] = useState("");
   const [updateProduct] = useUpdateProductMutation();
+  const router = useRouter();
   const token = getAccessToken();
   const vendorId = token
     ? (GetDataByToken(token) as { vendorId: string }).vendorId
@@ -149,16 +164,6 @@ export default function ProductForm({ product }: ProductFormProps) {
         ];
         setProductImageCover(coverFile);
       }
-
-      if (product.productImageList) {
-        setProductImages(
-          product.productImageList.map((image, index) => ({
-            uid: index.toString(),
-            name: `image.${index}.png`,
-            url: image.imageUrl,
-          })) as UploadFile[]
-        );
-      }
     }
   }, [product, setValue]);
 
@@ -169,36 +174,57 @@ export default function ProductForm({ product }: ProductFormProps) {
     formData.append("name", data.name);
     formData.append("price", data.price.toString());
     formData.append("description", data.description || "");
-    formData.append("sku", data.sku);
+
+    // Only append sku if it's provided or if it's a new product
+    if (data.sku || !product) {
+      formData.append("sku", data.sku || "");
+    }
+
     formData.append("sold", data.sold.toString());
 
+    // Handle cover image
     if (productImageCover[0]?.originFileObj) {
       formData.append(
         "productImageCover",
         productImageCover[0].originFileObj,
         productImageCover[0].name
       );
+    } else if (product?.coverImage) {
+      formData.append("productImageCover", product.coverImage);
     }
 
-    productImages.forEach((image) => {
-      if (image.originFileObj) {
-        formData.append("productImages", image.originFileObj, image.name);
-      }
-    });
+    // Handle product images
+    if (productImages.length > 0) {
+      productImages.forEach((image) => {
+        if (image.originFileObj) {
+          formData.append("productImages", image.originFileObj, image.name);
+        }
+      });
+    }
 
     try {
-      const response = product
+      const isUpdate = !!product;
+
+      if (isUpdate) {
+        formData.append("id", product?.id || "");
+      }
+
+      const response = isUpdate
         ? await updateProduct({ id: product?.id || "", body: formData })
         : await createProduct(formData);
 
+      const successMessage = isUpdate
+        ? "Sản phẩm đã được cập nhật thành công"
+        : "Sản phẩm đã được thêm thành công";
+
       if (response.data?.isSuccess) {
-        message.success("Sản phẩm đã được thêm thành công");
+        message.success(successMessage);
       } else {
-        message.error("Không thể thêm sản phẩm");
+        message.error("Không thể cập nhật sản phẩm");
       }
     } catch (error) {
       console.error("Lỗi:", error);
-      message.error("Đã xảy ra lỗi khi thêm sản phẩm");
+      message.error("Đã xảy ra lỗi khi cập nhật sản phẩm");
     }
   };
 
@@ -250,9 +276,12 @@ export default function ProductForm({ product }: ProductFormProps) {
   return (
     <Card className="w-full max-w-7xl mx-auto shadow-lg">
       <CardHeader className="bg-primary text-primary-foreground">
-        <CardTitle className="">
-          {product ? "Chỉnh Sửa Sản Phẩm" : "Thêm Sản Phẩm Mới"}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <Back onClick={onClick} />
+          <CardTitle className="text-xl md:text-2xl font-bold">
+            {product ? "Chỉnh Sửa Sản Phẩm" : "Thêm Sản Phẩm Mới"}
+          </CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="p-6 pb-0">
         <form

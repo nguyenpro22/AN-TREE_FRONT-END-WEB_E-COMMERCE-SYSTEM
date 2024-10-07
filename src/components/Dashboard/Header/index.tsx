@@ -14,10 +14,26 @@ import {
 import { Bell, Settings, LogOut, User } from "lucide-react";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useRouter } from "next/navigation";
+import { useLogoutMutation } from "@/services/apis";
+import { clearToken } from "@/utils";
+import toast from "react-hot-toast";
 
 export function Header() {
   const { currentPage } = useNavigation();
   const router = useRouter();
+  const [logout] = useLogoutMutation();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Đăng xuất thành công");
+      clearToken();
+      router.push("/auth");
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
   return (
     <header className="bg-gradient-to-r from-gray-50 to-white border-b px-6 py-4 flex items-center justify-between">
       <div className="flex items-center space-x-4">
@@ -58,7 +74,7 @@ export function Header() {
               <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600">
+            <DropdownMenuItem className="text-red-600" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
             </DropdownMenuItem>
