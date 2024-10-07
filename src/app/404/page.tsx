@@ -9,8 +9,7 @@ import { ArrowLeft, Zap } from "lucide-react";
 export default function NotFound() {
   const router = useRouter();
   const [typedText, setTypedText] = useState("");
-  const fullText =
-    "The page you're looking for doesn't exist or has been moved.";
+  const fullText = "Trang mà bạn tìm kiếm không tồn tại hoặc đã bị xóa";
   const [position, setPosition] = useState({ top: 0, left: 0 });
   useEffect(() => {
     const top = Math.random() * 100;
@@ -79,7 +78,7 @@ export default function NotFound() {
           404
         </h1>
         <p className="text-2xl font-semibold text-gray-700 mb-4">
-          Oops! Page Not Found
+          Oops! Trang không tồn tại
         </p>
         <div className="text-gray-500 max-w-md mx-auto h-16 flex items-center justify-center">
           <p className="whitespace-pre-wrap">{typedText}</p>
@@ -101,7 +100,7 @@ export default function NotFound() {
           onClick={handleBackToHome}
           className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600 transition-all duration-300 hover:animate-pulse"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
+          <ArrowLeft className="mr-2 h-4 w-4" /> Trở về trang chủ
         </Button>
       </motion.div>
 
