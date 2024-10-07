@@ -13,7 +13,7 @@ export const productApi = createApi({
         pageIndex?: number;
         pageSize?: number;
         categoryId?: string;
-        vendorName?: string;
+        vendorName: string;
         sortColumn?: string;
         sortOrder?: "asc" | "desc";
         serchTerm?: string;
