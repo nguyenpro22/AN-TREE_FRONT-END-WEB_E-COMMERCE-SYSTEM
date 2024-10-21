@@ -52,9 +52,10 @@ export default function EnhancedOrdersPage() {
     data: ordersData,
     error,
     isLoading,
+    refetch,
   } = useGetOrdersQuery({
     pageIndex: 1,
-    pageSize: 1000, // Fetch a large number of orders to handle client-side pagination
+    pageSize: 100,
     sortColumn: sortColumn,
     sortOrder: sortDirection,
   });
@@ -122,6 +123,7 @@ export default function EnhancedOrdersPage() {
                 onChange={handleSearch}
               />
             </div>
+            <Button onClick={refetch}>Refresh</Button>
           </div>
           <div className="rounded-lg border shadow-sm overflow-hidden">
             <Table>

@@ -22,7 +22,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCreateVendorMutation } from "@/services/apis";
+import {
+  useCreateVendorMutation,
+  useLazyGetVendorProfileQuery,
+} from "@/services/apis";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import {
@@ -30,6 +33,8 @@ import {
   setRefreshToken,
   setRefreshTokenExpiryTime,
 } from "@/utils";
+import { useVendor } from "@/hooks/useVendorContext";
+import { IUser } from "@/types";
 
 type VendorCreationFormInputs = {
   bankOwnerName: string;
@@ -59,9 +64,10 @@ export default function VendorCreationForm({
   } = useForm<VendorCreationFormInputs>();
   const [isSuccess, setIsSuccess] = useState(false);
   const [createVendor] = useCreateVendorMutation();
-
+  const { setVendor } = useVendor();
   const [countdown, setCountdown] = useState(3);
   const router = useRouter();
+  const [getProfile] = useLazyGetVendorProfileQuery();
   const onSubmit: SubmitHandler<VendorCreationFormInputs> = async (data) => {
     try {
       const formData = new FormData();
@@ -94,6 +100,9 @@ export default function VendorCreationForm({
         setAccessToken(accessToken);
         setRefreshToken(refreshToken);
         setRefreshTokenExpiryTime(refreshTokenExpiryTime);
+
+        const profileRes = await getProfile();
+        setVendor(profileRes?.data?.value as IUser);
         const countdownTimer = setInterval(() => {
           setCountdown((prevCountdown) => {
             if (prevCountdown === 1) {

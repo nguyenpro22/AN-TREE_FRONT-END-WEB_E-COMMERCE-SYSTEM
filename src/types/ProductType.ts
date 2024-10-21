@@ -1,5 +1,5 @@
-export interface IProduct {
-  id: string;
+export type IProduct = {
+  readonly id: string;
   name: string;
   price: number;
   sku: number;
@@ -10,11 +10,37 @@ export interface IProduct {
   rating: number;
   vendorName: string;
   vendorAvatarImage: string;
+};
+
+export interface ProductCategory {
+  name: string;
+  description: string;
+}
+
+interface Vendor {
+  readonly email: string;
+  name: string;
+  address: string;
+  city: string;
+  province: string;
+  phonenumber: string;
+  avatarImage: string;
+  coverImage: string;
+  createdOnUtc: string;
+}
+
+export interface ProductImage {
+  imageUrl: string;
+}
+
+export interface ProductFeedback {
+  rate: number;
+  total: number;
 }
 
 export interface IProductDetail {
-  id: string;
-  productCategoryId: string;
+  readonly id: string;
+  readonly productCategoryId: string;
   name: string;
   price: number;
   description: string;
@@ -23,30 +49,12 @@ export interface IProductDetail {
   discountSold: number;
   discountPercent: number;
   coverImage: string;
-  createdOnUtc: string;
+  readonly createdOnUtc: string;
   modifiedOnUtc: string;
-  createdBy: string;
+  readonly createdBy: string;
   updatedBy: string;
-  productCategory: {
-    name: string;
-    description: string;
-  };
-  vendor: {
-    email: string;
-    name: string;
-    address: string;
-    city: string;
-    province: string;
-    phonenumber: string;
-    avatarImage: string;
-    coverImage: string;
-    createdOnUtc: string;
-  };
-  productImageList: Array<{
-    imageUrl: string;
-  }>;
-  productFeedbackList: Array<{
-    rate: number;
-    total: number;
-  }>;
+  productCategory: ProductCategory;
+  vendor: Vendor;
+  productImageList: ReadonlyArray<ProductImage>;
+  productFeedbackList: ReadonlyArray<ProductFeedback>;
 }

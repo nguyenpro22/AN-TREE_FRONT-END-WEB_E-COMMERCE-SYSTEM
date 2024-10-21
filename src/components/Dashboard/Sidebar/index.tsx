@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,9 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useNavigation } from "@/hooks/useNavigation";
+import { useVendor } from "@/hooks/useVendorContext";
+import { useLazyGetVendorProfileQuery } from "@/services/apis";
+import { IUser } from "@/types";
 
 const sidebarItems = [
   {
@@ -36,12 +39,6 @@ const sidebarItems = [
     color: "text-yellow-500",
   },
   {
-    href: "/dashboard/discounts",
-    icon: Tags,
-    label: "Discounts",
-    color: "text-purple-500",
-  },
-  {
     href: "/dashboard/revenue",
     icon: BarChart,
     label: "Revenue",
@@ -52,7 +49,24 @@ const sidebarItems = [
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { currentPage, setCurrentPage } = useNavigation();
+  const { vendor, setVendor } = useVendor();
 
+  const [getProfile] = useLazyGetVendorProfileQuery();
+
+  useEffect(() => {
+    const fetchVendorProfile = async () => {
+      if (!vendor) {
+        try {
+          const profileRes = await getProfile();
+          setVendor(profileRes?.data?.value as IUser);
+        } catch (error) {
+          console.error("Error fetching vendor profile:", error);
+        }
+      }
+    };
+
+    fetchVendorProfile();
+  }, [vendor]);
   return (
     <div
       className={cn(
@@ -82,12 +96,14 @@ export default function Sidebar() {
       <div className="flex-shrink-0 p-4">
         <div className="flex items-center space-x-4">
           <Avatar>
-            <AvatarImage src="https://github.com/shadcn.png" />
+            <AvatarImage
+              src={vendor?.avatarImage || "https://github.com/shadcn.png"}
+            />
             <AvatarFallback>SC</AvatarFallback>
           </Avatar>
           {!isCollapsed && (
             <div>
-              <p className="text-sm font-medium">Sarah Connor</p>
+              <p className="text-sm font-medium">{vendor?.name}</p>
               <p className="text-xs text-gray-500">Premium Seller</p>
             </div>
           )}

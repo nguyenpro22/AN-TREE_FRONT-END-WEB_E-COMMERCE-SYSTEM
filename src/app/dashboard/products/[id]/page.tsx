@@ -1,60 +1,62 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import "react-quill/dist/quill.snow.css";
 import { useGetProductByIdQuery } from "@/services/apis";
 import { useParams, useRouter } from "next/navigation";
-import ProductDetails from "@/components/Dashboard/ProductDetail";
-import { IProductDetail } from "@/types";
-import ProductForm from "@/components/Dashboard/ProductDetail/AddUpdate";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
+import { IProductDetail } from "@/types";
+
+const ProductDetails = dynamic(
+  () => import("@/components/Dashboard/ProductDetail"),
+  { loading: () => <p>Loading...</p>, ssr: false }
+);
+const ProductForm = dynamic(
+  () => import("@/components/Dashboard/ProductDetail/AddUpdate"),
+  { loading: () => <p>Loading...</p>, ssr: false }
+);
 
 export default function Component() {
   const params = useParams();
   const router = useRouter();
   const productId = params.id as string;
-  const { data: product, isLoading } = useGetProductByIdQuery(productId);
+  const { data: product, isLoading } = useGetProductByIdQuery(productId, {
+    skip: productId === "new",
+  });
 
-  if (productId === "new") {
-    return (
-      <div>
-        <ProductForm onClick={() => router.back()} />
-      </div>
-    );
-  }
+  const content = useMemo(() => {
+    if (productId === "new") {
+      return <ProductForm onClick={() => router.back()} />;
+    }
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-12 w-3/4" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-2/3" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Skeleton className="h-[300px] w-full" />
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-          </div>
-        </div>
-      </div>
-    );
-  }
+    if (isLoading) {
+      return <LoadingSkeleton />;
+    }
 
-  if (product) {
-    return (
-      <div>
-        <ProductDetails product={product?.value as IProductDetail} />
-      </div>
-    );
-  }
+    if (product) {
+      return <ProductDetails product={product?.value as IProductDetail} />;
+    }
 
-  return (
-    <div>
-      <div>Product not found</div>
-    </div>
-  );
+    return <div>Product not found</div>;
+  }, [productId, isLoading, product, router]);
+
+  return <div>{content}</div>;
 }
+
+const LoadingSkeleton = () => (
+  <div className="space-y-6">
+    <Skeleton className="h-12 w-3/4" />
+    <Skeleton className="h-4 w-full" />
+    <Skeleton className="h-4 w-full" />
+    <Skeleton className="h-4 w-2/3" />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <Skeleton className="h-[300px] w-full" />
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+      </div>
+    </div>
+  </div>
+);

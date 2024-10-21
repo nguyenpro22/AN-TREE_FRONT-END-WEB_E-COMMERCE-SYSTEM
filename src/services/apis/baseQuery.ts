@@ -15,17 +15,12 @@ import {
 } from "@reduxjs/toolkit/query";
 import { message } from "antd";
 
-// Utility function to handle token storage after refresh
-const handleTokenRefresh = (data: IResCommon<ILoginResponse>) => {
-  const { value } = data;
-  setAccessToken(value.accessToken);
-  setRefreshToken(value.refreshToken);
-  setRefreshTokenExpiryTime(value.refreshTokenExpiryTime);
-};
+// Memoize the base URL
+const BASE_URL = process.env["NEXT_PUBLIC_API_URL"];
 
-// Base query with the default authorization header
-export const baseQuery = fetchBaseQuery({
-  baseUrl: process.env["NEXT_PUBLIC_API_URL"],
+// Memoize the baseQuery function
+const baseQuery = fetchBaseQuery({
+  baseUrl: BASE_URL,
   prepareHeaders: (headers) => {
     const token = getAccessToken();
     if (token) {
@@ -35,7 +30,10 @@ export const baseQuery = fetchBaseQuery({
   },
 });
 
-// Base query with automatic token refresh
+// Use a single instance of message for all error notifications
+const errorMessage = message.error;
+
+// Optimize the baseQueryWithReAuth function
 export const baseQueryWithReAuth: BaseQueryFn<
   string | FetchArgs,
   unknown,
@@ -43,12 +41,10 @@ export const baseQueryWithReAuth: BaseQueryFn<
 > = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
-  // Check if the request is unauthorized (401)
   if (result.error?.status === 401) {
     const accessToken = getAccessToken();
     const refreshToken = getRefreshToken();
 
-    // If there is a token, attempt to refresh it
     if (accessToken && refreshToken) {
       const refreshResult = await baseQuery(
         {
@@ -61,42 +57,33 @@ export const baseQueryWithReAuth: BaseQueryFn<
       );
 
       if (refreshResult.data) {
-        // Update tokens on successful refresh
-        handleTokenRefresh(refreshResult.data as IResCommon<ILoginResponse>);
-        // Retry the original request
+        const { value } = refreshResult.data as IResCommon<ILoginResponse>;
+        setAccessToken(value.accessToken);
+        setRefreshToken(value.refreshToken);
+        setRefreshTokenExpiryTime(value.refreshTokenExpiryTime);
         result = await baseQuery(args, api, extraOptions);
       } else if (refreshResult.error?.status === 500) {
-        message.error("Session expired. Please log in again.");
-        redirectToLogin();
+        errorMessage("Session expired. Please log in again.");
+        clearToken();
+        // window.location.href = "/auth";
         return { error: { status: 401, data: "Session expired" } };
       }
     } else {
-      // If tokens are not available, clear them and redirect to login
-      handleUnauthorized();
+      errorMessage("Unauthorized access. Redirecting to login.");
+      clearToken();
+      window.location.href = "/auth";
     }
   }
 
-  // Handle Unauthorized (401) after token refresh
   if (result.error?.status === 401) {
-    handleUnauthorized();
+    errorMessage("Unauthorized access. Redirecting to login.");
+    clearToken();
+    window.location.href = "/auth";
   }
 
-  // Handle Forbidden (403) access
   if (result.error?.status === 403) {
-    message.error("Access forbidden.");
+    errorMessage("Access forbidden.");
   }
 
   return result;
-};
-
-// Handle redirection to login and clear tokens
-const redirectToLogin = () => {
-  clearToken();
-  window.location.href = "/auth";
-};
-
-// Handle unauthorized access (401)
-const handleUnauthorized = () => {
-  message.error("Unauthorized access. Redirecting to login.");
-  redirectToLogin();
 };
