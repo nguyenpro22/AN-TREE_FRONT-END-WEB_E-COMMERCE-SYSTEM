@@ -166,8 +166,11 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           <TabsContent value="vendor" className="mt-4">
             <div className="flex items-center space-x-4">
               <Image
-                src={product.vendor.avatarImage}
-                alt={product.vendor.name}
+                src={
+                  product?.vendor?.avatarImage ||
+                  "https://github.com/shadcn.png"
+                }
+                alt={product?.vendor?.name}
                 width={130}
                 height={130}
                 className="rounded-full object-cover shadow-lg"
@@ -176,7 +179,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 <div className="flex items-center space-x-2">
                   <User className="w-6 h-6 text-gray-500" />
                   <h3 className="font-semibold text-lg">
-                    {product.vendor.name}
+                    {product?.vendor?.name}
                   </h3>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
@@ -189,7 +192,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             </div>
           </TabsContent>
           <TabsContent value="discounts" className="mt-4">
-            <ProductDiscountManagement productId={product.id} />
+            <ProductDiscountManagement id={product.id} />
           </TabsContent>
         </Tabs>
       </>

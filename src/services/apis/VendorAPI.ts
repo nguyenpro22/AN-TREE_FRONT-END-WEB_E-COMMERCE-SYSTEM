@@ -1,5 +1,5 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { ILoginResponse, IResCommon, IUser } from "@/types";
+import { DashboardOrder, ILoginResponse, IResCommon, IUser } from "@/types";
 import { baseQueryWithReAuth } from "./baseQuery";
 
 export const VendorAPI = createApi({
@@ -27,6 +27,15 @@ export const VendorAPI = createApi({
         body,
       }),
     }),
+    getVendorRevenue: builder.query<
+      IResCommon<DashboardOrder[]>,
+      { month?: string; year?: string; isOrder?: boolean }
+    >({
+      query: ({ month, year, isOrder = true }) => ({
+        url: `/dashboards/Revenue`,
+        params: { month, year, isOrder },
+      }),
+    }),
   }),
 });
 
@@ -35,4 +44,5 @@ export const {
   useLazyGetVendorProfileQuery,
   useCreateVendorMutation,
   useUpdateVendorMutation,
+  useGetVendorRevenueQuery,
 } = VendorAPI;

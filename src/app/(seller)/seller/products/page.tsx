@@ -32,9 +32,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { IProduct } from "@/types/ProductType";
-import { useVendor } from "@/hooks/useVendorContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination } from "antd";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { sellerRoutes } from "@/constants/route.constant";
 
 export default function ProductsPage() {
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -44,7 +46,7 @@ export default function ProductsPage() {
   const [filterDiscount, setFilterDiscount] = useState("all");
   const [isFiltering, setIsFiltering] = useState(false);
   const pageSize = 5;
-  const { vendor } = useVendor();
+  const vendor = useSelector((state: RootState) => state.vendor.vendor);
   const {
     data: productsData,
     error,
@@ -155,7 +157,7 @@ export default function ProductsPage() {
                 <RefreshCcwIcon className="mr-2 h-4 w-4" />
                 Làm mới
               </Button>
-              <Link href="/dashboard/products/new">
+              <Link href="/seller/products/new">
                 <Button variant="secondary" size="sm">
                   <PlusIcon className="mr-2 h-4 w-4" />
                   Thêm sản phẩm mới
@@ -289,7 +291,9 @@ export default function ProductsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Link href={`/dashboard/products/${product?.id}`}>
+                          <Link
+                            href={`${sellerRoutes.PRODUCT_DETAIL}/${product?.id}`}
+                          >
                             <Button variant="secondary" size="sm">
                               Chi Tiết
                             </Button>

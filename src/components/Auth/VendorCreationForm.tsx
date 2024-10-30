@@ -33,8 +33,8 @@ import {
   setRefreshToken,
   setRefreshTokenExpiryTime,
 } from "@/utils";
-import { useVendor } from "@/hooks/useVendorContext";
 import { IUser } from "@/types";
+import { publicRoutes } from "@/constants/route.constant";
 
 type VendorCreationFormInputs = {
   bankOwnerName: string;
@@ -64,7 +64,6 @@ export default function VendorCreationForm({
   } = useForm<VendorCreationFormInputs>();
   const [isSuccess, setIsSuccess] = useState(false);
   const [createVendor] = useCreateVendorMutation();
-  const { setVendor } = useVendor();
   const [countdown, setCountdown] = useState(3);
   const router = useRouter();
   const [getProfile] = useLazyGetVendorProfileQuery();
@@ -101,13 +100,11 @@ export default function VendorCreationForm({
         setRefreshToken(refreshToken);
         setRefreshTokenExpiryTime(refreshTokenExpiryTime);
 
-        const profileRes = await getProfile();
-        setVendor(profileRes?.data?.value as IUser);
         const countdownTimer = setInterval(() => {
           setCountdown((prevCountdown) => {
             if (prevCountdown === 1) {
               clearInterval(countdownTimer);
-              router.push("/dashboard");
+              router.push(`${publicRoutes.AUTH}`);
             }
             return prevCountdown - 1;
           });
@@ -130,8 +127,8 @@ export default function VendorCreationForm({
         <CheckCircle2 className="h-4 w-4 text-green-600" />
         <AlertTitle>Success</AlertTitle>
         <AlertDescription>
-          Your vendor account has been created successfully. Redirecting to
-          dashboard in {`${countdown}`} seconds
+          Đã hoàn thành tạo tài khoản vendor, chờ admin duyệt. Trở về trang đăng
+          nhập sau {`${countdown}`} giây.
         </AlertDescription>
       </Alert>
     );

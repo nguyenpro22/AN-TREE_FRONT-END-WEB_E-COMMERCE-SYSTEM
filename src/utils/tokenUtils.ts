@@ -52,8 +52,9 @@ export const decodeJwt = (token: string | null) => {
 export const GetDataByToken = (token: string): unknown | null => {
   const decoded = decodeJwt(token);
   const id = decoded?.UserId;
+  const role = decoded?.Role;
   const vendorId = decoded?.VendorId;
-  return { id, vendorId };
+  return { id, vendorId, role };
 };
 
 export const rememberMe = (token: string, refreshToken: string): void => {

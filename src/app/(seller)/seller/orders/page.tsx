@@ -21,10 +21,17 @@ import { getStatusByCode, Order } from "@/types";
 import { formatCurrency } from "@/utils";
 import { useGetOrdersQuery } from "@/services/apis/OrderAPI";
 import { TableRowSkeleton } from "@/components/Skeleton";
+import { sellerRoutes } from "@/constants/route.constant";
 
-const formatDate = (dateString: string): string => {
-  const date = parseISO(dateString);
-  return format(date, "MMM d, yyyy");
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 const renderOrderStatus = (status: number) => {
@@ -206,12 +213,14 @@ export default function EnhancedOrdersPage() {
                         {order.id.slice(0, 8)}
                       </TableCell>
                       <TableCell>{`${order.user.firstname} ${order.user.lastname}`}</TableCell>
-                      <TableCell>${formatCurrency(order.total)}</TableCell>
+                      <TableCell>{formatCurrency(order.total)}đ</TableCell>
                       <TableCell>{renderOrderStatus(order.status)}</TableCell>
                       <TableCell>{formatDate(order.createdOnUtc)}</TableCell>
                       <TableCell>
                         <Button variant="link" asChild>
-                          <Link href={`/dashboard/orders/${order.id}`}>
+                          <Link
+                            href={`${sellerRoutes.ORDER_MANAGEMENT}/${order.id}`}
+                          >
                             View Details
                           </Link>
                         </Button>

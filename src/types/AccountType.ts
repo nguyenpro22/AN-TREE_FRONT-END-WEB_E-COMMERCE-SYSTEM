@@ -14,3 +14,11 @@ export interface IUser {
   createdOnUtc: string;
   modifiedOnUtc: string;
 }
+export interface IAdmin {
+  email: string;
+  username: string;
+  firstname: string;
+  lastname: string;
+  phonenumber: string;
+  createdOnUtc: string;
+}

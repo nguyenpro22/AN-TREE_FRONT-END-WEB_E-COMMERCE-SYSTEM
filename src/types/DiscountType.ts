@@ -13,7 +13,6 @@ type DiscountType =
   | { type: "update"; productDiscountId: string; isDeleted: boolean };
 
 export type CreateDiscountType<T extends DiscountType["type"]> = BaseDiscount &
-  Extract<DiscountType, { type: T }> &
   Omit<Extract<DiscountType, { type: T }>, "type">;
 
 export type IDiscount = CreateDiscountType<"create">;

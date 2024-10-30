@@ -9,64 +9,40 @@ import {
   LayoutDashboard,
   ShoppingCart,
   Package,
-  Tags,
   BarChart,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 import { useNavigation } from "@/hooks/useNavigation";
-import { useVendor } from "@/hooks/useVendorContext";
-import { useLazyGetVendorProfileQuery } from "@/services/apis";
-import { IUser } from "@/types";
+import { sellerRoutes } from "@/constants/route.constant";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 const sidebarItems = [
   {
-    href: "/dashboard",
+    href: sellerRoutes.DASHBOARD,
     icon: LayoutDashboard,
     label: "Dashboard",
     color: "text-blue-500",
   },
   {
-    href: "/dashboard/orders",
+    href: sellerRoutes.ORDERS,
     icon: ShoppingCart,
     label: "Orders",
     color: "text-green-500",
   },
   {
-    href: "/dashboard/products",
+    href: sellerRoutes.PRODUCTS,
     icon: Package,
     label: "Products",
     color: "text-yellow-500",
-  },
-  {
-    href: "/dashboard/revenue",
-    icon: BarChart,
-    label: "Revenue",
-    color: "text-red-500",
   },
 ];
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { currentPage, setCurrentPage } = useNavigation();
-  const { vendor, setVendor } = useVendor();
-
-  const [getProfile] = useLazyGetVendorProfileQuery();
-
-  useEffect(() => {
-    const fetchVendorProfile = async () => {
-      if (!vendor) {
-        try {
-          const profileRes = await getProfile();
-          setVendor(profileRes?.data?.value as IUser);
-        } catch (error) {
-          console.error("Error fetching vendor profile:", error);
-        }
-      }
-    };
-
-    fetchVendorProfile();
-  }, [vendor]);
+  const vendor = useSelector((state: RootState) => state.vendor.vendor);
   return (
     <div
       className={cn(

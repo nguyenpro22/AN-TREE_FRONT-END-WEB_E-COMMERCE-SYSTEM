@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useVendor } from "@/hooks/useVendorContext";
 import {
   useLazyGetVendorProfileQuery,
   useUpdateVendorMutation,
@@ -28,6 +27,9 @@ import {
   Phone,
 } from "lucide-react";
 import Image from "next/image";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { setVendor } from "@/redux/store/slices/vendorSlice";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -149,11 +151,13 @@ function ProfileFields({ vendor }: { vendor: IUser | null }) {
 type FormValues = z.infer<typeof formSchema>;
 
 export default function UserProfile() {
-  const { vendor, setVendor } = useVendor();
+  const vendor = useSelector(
+    (state: RootState) => state.vendor.vendor
+  ) as IUser;
   const [getVendorProfile] = useLazyGetVendorProfileQuery();
   const [updateVendorProfile] = useUpdateVendorMutation();
   const [isEditing, setIsEditing] = useState(false);
-
+  const dispatch = useDispatch();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -169,28 +173,6 @@ export default function UserProfile() {
     },
   });
 
-  useEffect(() => {
-    const fetchVendorProfile = async () => {
-      if (!vendor) {
-        const token = getAccessToken();
-        if (token) {
-          try {
-            const res = await getVendorProfile();
-            if (res.data) {
-              setVendor(res.data.value);
-              form.reset(res.data.value);
-            }
-          } catch (error) {
-            console.error("Error fetching vendor profile:", error);
-            toast.error("Failed to fetch profile. Please try again.");
-          }
-        }
-      }
-    };
-
-    fetchVendorProfile();
-  }, [vendor, getVendorProfile, setVendor, form]);
-
   const onSubmit = async (values: FormValues) => {
     try {
       const formData = new FormData();
@@ -201,7 +183,7 @@ export default function UserProfile() {
       const res = await updateVendorProfile(formData).unwrap();
 
       if (res) {
-        setVendor({ ...vendor, ...values } as IUser);
+        dispatch(setVendor({ ...vendor, ...values } as IUser));
         setIsEditing(false);
         toast.success("Profile updated successfully");
       }
