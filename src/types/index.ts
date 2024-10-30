@@ -8,3 +8,5 @@ export * from "./CategoryType";
 export * from "./OrderType";
 export * from "./FeedbackType";
 export * from "./VendorType";
+export * from "./DiscountType";
+export * from "./AdminType";

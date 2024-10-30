@@ -1,6 +1,6 @@
 export type Vendor = {
   id: string;
-  name: string;
+  readname: string;
   email: string;
   address: string;
   city: string;

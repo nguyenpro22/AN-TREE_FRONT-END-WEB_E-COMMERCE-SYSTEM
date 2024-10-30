@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { sellerRoutes, adminRoutes } from "@/constants/route.constant";
 
 type NavigationContextType = {
   currentPage: string;
@@ -10,25 +11,30 @@ const NavigationContext = createContext<NavigationContextType | undefined>(
   undefined
 );
 
-// Hàm để viết hoa chữ cái đầu tiên
-const capitalizeFirstLetter = (string: string) => {
-  return string.charAt(0).toUpperCase() + string.slice(1);
+// Helper function to get the page title from the route
+const getPageTitle = (pathname: string): string => {
+  const allRoutes = { ...sellerRoutes, ...adminRoutes };
+  const route = Object.entries(allRoutes).find(
+    ([_, path]) => path === pathname
+  );
+  if (route) {
+    return route[0]
+      .toLowerCase()
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+  return "Dashboard"; // Default title
 };
 
 export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const pathname = usePathname();
-  const [currentPage, setCurrentPage] = useState(() => {
-    const pathParts = pathname.split("/");
-    const lastPart = pathParts[pathParts.length - 1] || "dashboard";
-    return capitalizeFirstLetter(lastPart);
-  });
+  const [currentPage, setCurrentPage] = useState(() => getPageTitle(pathname));
 
   useEffect(() => {
-    const pathParts = pathname.split("/");
-    const lastPart = pathParts[pathParts.length - 1] || "dashboard";
-    setCurrentPage(capitalizeFirstLetter(lastPart));
+    setCurrentPage(getPageTitle(pathname));
   }, [pathname]);
 
   return (

@@ -51,22 +51,30 @@ export const OrderStatus: Record<number, OrderStatusType> = {
   0: {
     status: 0,
     description: "Pending",
-    bg_Color: "bg-blue-200",
-    txt_Color: "text-blue-800",
+    bg_Color: "bg-gray-400",
+    txt_Color: "text-gray-800",
   },
   1: {
     status: 1,
-    description: "Failed",
-    bg_Color: "bg-yellow-200",
-    txt_Color: "text-yellow-800",
+    description: "Success",
+    bg_Color: "bg-green-500",
+    txt_Color: "text-green-800",
   },
   2: {
     status: 2,
-    description: "Success",
-    bg_Color: "bg-green-200",
-    txt_Color: "text-green-800",
+    description: "Failed",
+    bg_Color: "bg-yellow-500",
+    txt_Color: "text-yellow-800",
   },
 };
+
+export interface DashboardOrder {
+  no: number;
+  startDate: string;
+  endDate: string;
+  orderNumber: number;
+  totalAmount: number;
+}
 
 // Optionally add a method to get status by code
 export const getStatusByCode = (code: number): OrderStatusType | undefined => {

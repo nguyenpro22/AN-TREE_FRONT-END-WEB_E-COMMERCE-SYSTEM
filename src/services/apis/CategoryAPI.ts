@@ -9,7 +9,7 @@ export const categoryApi = createApi({
   endpoints: (builder) => ({
     getCategories: builder.query<IResCommon<ICategoryListResponse>, void>({
       query: () => ({
-        url: `/categorys`, // Updated to match the exact endpoint
+        url: `/categorys`,
       }),
       providesTags: ["Category"],
     }),

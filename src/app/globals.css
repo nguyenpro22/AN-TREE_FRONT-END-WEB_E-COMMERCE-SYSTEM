@@ -7,8 +7,48 @@ body {
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  @keyframes scrollbarAppear {
+    0% { opacity: 0; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes thumbPulse {
+    0% { box-shadow: 0 0 10px rgba(255, 99, 71, 0.8), 0 0 20px rgba(255, 99, 71, 0.6); }
+    50% { box-shadow: 0 0 15px rgba(255, 99, 71, 1), 0 0 30px rgba(255, 99, 71, 0.8); }
+    100% { box-shadow: 0 0 10px rgba(255, 99, 71, 0.8), 0 0 20px rgba(255, 99, 71, 0.6); }
+  }
+
+  .custom-scrollbar {
+    scrollbar-width: thick;
+    scrollbar-color: #FF6347 #FFE4E1;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 16px; /* Increased scrollbar size */
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: linear-gradient(180deg, #FFE4E1, #FFDDC1);
+    border-radius: 8px; /* Rounded track */
+    margin: 4px 0;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #FF6347, #FF4500);
+    border-radius: 16px; /* Rounded thumb for a chunkier look */
+    border: 4px solid #FFE4E1; /* Increased border size for a thicker appearance */
+    animation: scrollbarAppear 0.4s ease-in-out;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #FF4500, #FF6347);
+    animation: thumbPulse 1.2s infinite alternate;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(45deg, #FF4500, #FF6347);
+    box-shadow: 0 0 15px rgba(255, 99, 71, 0.9), 0 0 25px rgba(255, 69, 0, 0.8);
+    transition: box-shadow 0.3s;
   }
 }
 

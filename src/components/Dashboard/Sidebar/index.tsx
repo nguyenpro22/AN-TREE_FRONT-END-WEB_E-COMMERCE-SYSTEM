@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -9,50 +9,40 @@ import {
   LayoutDashboard,
   ShoppingCart,
   Package,
-  Tags,
   BarChart,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 import { useNavigation } from "@/hooks/useNavigation";
+import { sellerRoutes } from "@/constants/route.constant";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 const sidebarItems = [
   {
-    href: "/dashboard",
+    href: sellerRoutes.DASHBOARD,
     icon: LayoutDashboard,
     label: "Dashboard",
     color: "text-blue-500",
   },
   {
-    href: "/dashboard/orders",
+    href: sellerRoutes.ORDERS,
     icon: ShoppingCart,
     label: "Orders",
     color: "text-green-500",
   },
   {
-    href: "/dashboard/products",
+    href: sellerRoutes.PRODUCTS,
     icon: Package,
     label: "Products",
     color: "text-yellow-500",
-  },
-  {
-    href: "/dashboard/discounts",
-    icon: Tags,
-    label: "Discounts",
-    color: "text-purple-500",
-  },
-  {
-    href: "/dashboard/revenue",
-    icon: BarChart,
-    label: "Revenue",
-    color: "text-red-500",
   },
 ];
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { currentPage, setCurrentPage } = useNavigation();
-
+  const vendor = useSelector((state: RootState) => state.vendor.vendor);
   return (
     <div
       className={cn(
@@ -82,12 +72,14 @@ export default function Sidebar() {
       <div className="flex-shrink-0 p-4">
         <div className="flex items-center space-x-4">
           <Avatar>
-            <AvatarImage src="https://github.com/shadcn.png" />
+            <AvatarImage
+              src={vendor?.avatarImage || "https://github.com/shadcn.png"}
+            />
             <AvatarFallback>SC</AvatarFallback>
           </Avatar>
           {!isCollapsed && (
             <div>
-              <p className="text-sm font-medium">Sarah Connor</p>
+              <p className="text-sm font-medium">{vendor?.name}</p>
               <p className="text-xs text-gray-500">Premium Seller</p>
             </div>
           )}

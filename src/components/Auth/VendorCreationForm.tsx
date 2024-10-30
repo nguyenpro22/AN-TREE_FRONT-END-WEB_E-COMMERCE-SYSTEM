@@ -22,7 +22,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCreateVendorMutation } from "@/services/apis";
+import {
+  useCreateVendorMutation,
+  useLazyGetVendorProfileQuery,
+} from "@/services/apis";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import {
@@ -30,6 +33,8 @@ import {
   setRefreshToken,
   setRefreshTokenExpiryTime,
 } from "@/utils";
+import { IUser } from "@/types";
+import { publicRoutes } from "@/constants/route.constant";
 
 type VendorCreationFormInputs = {
   bankOwnerName: string;
@@ -59,9 +64,9 @@ export default function VendorCreationForm({
   } = useForm<VendorCreationFormInputs>();
   const [isSuccess, setIsSuccess] = useState(false);
   const [createVendor] = useCreateVendorMutation();
-
   const [countdown, setCountdown] = useState(3);
   const router = useRouter();
+  const [getProfile] = useLazyGetVendorProfileQuery();
   const onSubmit: SubmitHandler<VendorCreationFormInputs> = async (data) => {
     try {
       const formData = new FormData();
@@ -94,11 +99,12 @@ export default function VendorCreationForm({
         setAccessToken(accessToken);
         setRefreshToken(refreshToken);
         setRefreshTokenExpiryTime(refreshTokenExpiryTime);
+
         const countdownTimer = setInterval(() => {
           setCountdown((prevCountdown) => {
             if (prevCountdown === 1) {
               clearInterval(countdownTimer);
-              router.push("/dashboard");
+              router.push(`${publicRoutes.AUTH}`);
             }
             return prevCountdown - 1;
           });
@@ -121,8 +127,8 @@ export default function VendorCreationForm({
         <CheckCircle2 className="h-4 w-4 text-green-600" />
         <AlertTitle>Success</AlertTitle>
         <AlertDescription>
-          Your vendor account has been created successfully. Redirecting to
-          dashboard in {`${countdown}`} seconds
+          Đã hoàn thành tạo tài khoản vendor, chờ admin duyệt. Trở về trang đăng
+          nhập sau {`${countdown}`} giây.
         </AlertDescription>
       </Alert>
     );

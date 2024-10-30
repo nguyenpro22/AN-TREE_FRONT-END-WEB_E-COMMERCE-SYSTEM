@@ -11,11 +11,13 @@ import LoginForm from "@/components/Auth/LoginForm";
 import ColorfulButton from "@/components/Auth/ColorfulButton";
 import RegisterForm from "@/components/Auth/RegisterForm";
 import {
+  useGetAdminProfileQuery,
+  useLazyGetAdminProfileQuery,
   useLazyGetVendorProfileQuery,
   useLoginMutation,
   useRegisterMutation,
 } from "@/services/apis";
-import { ILogin, IRegister, IUser } from "@/types";
+import { IAdmin, ILogin, IRegister, IUser } from "@/types";
 import {
   rememberMe,
   setAccessToken,
@@ -24,11 +26,16 @@ import {
   removeCookie,
   getAccessToken,
   getRefreshToken,
+  GetDataByToken,
 } from "@/utils";
 import { toast } from "react-hot-toast";
 import { CookieStorageKey } from "@/constants";
 import { useRouter } from "next/navigation";
-import { useVendor } from "@/hooks/useVendorContext";
+import { adminRoutes, sellerRoutes } from "@/constants/route.constant";
+import { useDispatch } from "react-redux";
+import { setVendor } from "@/redux/store/slices/vendorSlice";
+import { ROLE } from "@/constants/role.constant";
+import { setAdmin } from "@/redux/store/slices/adminSlice";
 
 export default function Component() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -37,8 +44,10 @@ export default function Component() {
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const router = useRouter();
-  const { setVendor } = useVendor();
+  const dispatch = useDispatch();
   const [getProfile, { data: profile }] = useLazyGetVendorProfileQuery();
+  const [getAdminProfile, { data: adminProfile }] =
+    useLazyGetAdminProfileQuery();
 
   const handleLogin = async (formData: ILogin) => {
     try {
@@ -56,6 +65,11 @@ export default function Component() {
       handleRememberMe(formData.isRememberMe || false);
 
       // Lấy profile vendor sau khi login
+      const { role } = GetDataByToken(accessToken) as { role: string };
+      if (role === ROLE.ADMIN.toString()) {
+        fetchAndHandleAdminProfile();
+        return;
+      }
       await fetchAndHandleProfile();
     } catch (error) {
       toast.error("Wrong email or password");
@@ -82,6 +96,14 @@ export default function Component() {
     }
   };
 
+  const fetchAndHandleAdminProfile = async () => {
+    const { data } = await getAdminProfile();
+    console.log(data?.value);
+    if (data?.isSuccess) {
+      dispatch(setAdmin(data.value as IAdmin));
+      router.push(adminRoutes.DASHBOARD);
+    }
+  };
   // Lấy và xử lý profile vendor
   const fetchAndHandleProfile = async () => {
     const profileRes = await getProfile();
@@ -96,10 +118,9 @@ export default function Component() {
     }
 
     if (profileRes?.data?.isSuccess) {
-      setVendor(profileRes?.data?.value as IUser); // Lưu vendor profile vào context
+      dispatch(setVendor(profileRes?.data?.value as IUser));
       toast.success("Login successful");
-
-      router.push("/dashboard");
+      router.push(sellerRoutes.DASHBOARD);
     } else {
       setIsLoggedIn(true);
       toast.success("Login successful, please complete your profile");
@@ -131,9 +152,9 @@ export default function Component() {
     <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
       <Card className="w-full max-w-[900px] overflow-hidden shadow-lg flex">
         <div className="w-1/3 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-8 flex flex-col justify-center">
-          <h2 className="text-3xl font-bold mb-4">Seller Portal</h2>
+          <h2 className="text-3xl font-bold mb-4">Antree Portal</h2>
           <p className="text-purple-100 text-lg">
-            Login or create an account to access your seller dashboard.
+            Login or create an account to access your dashboard.
           </p>
         </div>
         <div className="w-2/3">
@@ -162,13 +183,6 @@ export default function Component() {
                     onLoginSuccess={handleLogin}
                     isLoading={isLoginLoading}
                   />
-                  <div className="mt-6">
-                    <ColorfulButton
-                      icon={Github}
-                      label="Continue with GitHub"
-                      className="from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black w-full py-3 text-lg"
-                    />
-                  </div>
                 </TabsContent>
                 <TabsContent value="register">
                   <RegisterForm
