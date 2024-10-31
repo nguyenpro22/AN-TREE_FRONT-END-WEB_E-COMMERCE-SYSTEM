@@ -218,9 +218,7 @@ export default function EnhancedOrdersPage() {
                       <TableCell>{formatDate(order.createdOnUtc)}</TableCell>
                       <TableCell>
                         <Button variant="link" asChild>
-                          <Link
-                            href={`${sellerRoutes.ORDER_MANAGEMENT}/${order.id}`}
-                          >
+                          <Link href={`${sellerRoutes.ORDERS}/${order.id}`}>
                             View Details
                           </Link>
                         </Button>

@@ -25,13 +25,7 @@ export interface DashboardAmount {
   totalCustomer: number;
 }
 
-export interface DashboardOrder {
-  no: number;
-  startDate: string;
-  endDate: string;
-  orderNumber: number;
-  totalAmount: number;
-}
+
 
 export interface DashboardSubscription {
   no: number;
