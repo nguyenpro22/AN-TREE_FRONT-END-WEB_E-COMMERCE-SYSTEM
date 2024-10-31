@@ -45,7 +45,7 @@ export default function VendorDetailsPopup(
   { vendor, isOpen, onClose }: VendorDetailsPopupProps = {
     vendor: null,
     isOpen: false,
-    onClose: () => {},
+    onClose: () => void 0,
   }
 ) {
   if (!vendor) return null;
