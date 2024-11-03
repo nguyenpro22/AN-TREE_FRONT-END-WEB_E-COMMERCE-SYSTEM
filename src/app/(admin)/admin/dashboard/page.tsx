@@ -4,8 +4,14 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, CreditCard, Package } from "lucide-react";
-import { Bar } from "react-chartjs-2";
+import {
+  Users,
+  CreditCard,
+  Package,
+  ShoppingBag,
+  UserCheck,
+} from "lucide-react";
+import { Bar, Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -15,6 +21,7 @@ import {
   Tooltip,
   Legend,
   ChartOptions,
+  ArcElement,
 } from "chart.js";
 import {
   useGetDashboardAmountQuery,
@@ -36,7 +43,8 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ArcElement
 );
 
 export default function AdminDashboard() {
@@ -44,6 +52,7 @@ export default function AdminDashboard() {
   const [subscriptionView, setSubscriptionView] = useState<ViewState>("month");
   const orderChartRef = useRef<ChartJS<"bar">>(null);
   const subscriptionChartRef = useRef<ChartJS<"bar">>(null);
+  const customerChartRef = useRef<ChartJS<"pie">>(null);
 
   const { data: totalData, isLoading: isTotalLoading } =
     useGetDashboardAmountQuery();
@@ -97,11 +106,9 @@ export default function AdminDashboard() {
         view === "month"
           ? formatDateRange(item.startDate, item.endDate)
           : formatMonth(item.startDate);
-
       if (!labelsMap.has(label)) {
         labelsMap.set(label, { "Nông Dân": 0, "Sĩ Quan": 0, "Thương Gia": 0 });
       }
-
       labelsMap.get(label)![item.subscriptionName] += parseInt(
         item.subscriptionNumber
       );
@@ -117,7 +124,6 @@ export default function AdminDashboard() {
     return { labels, farmerData, officerData, merchantData };
   };
 
-  // Sử dụng dữ liệu gộp vào chartData
   const { labels, farmerData, officerData, merchantData } =
     aggregateSubscriptionData(subscriptionData, subscriptionView);
 
@@ -155,10 +161,48 @@ export default function AdminDashboard() {
     scales: { y: { beginAtZero: true } },
   };
 
+  const customerChartData = {
+    labels: ["Free Subscriptions", "Paid Subscriptions"],
+    datasets: [
+      {
+        data: [
+          totalData?.value?.totalFreeSubscription || 0,
+          totalData?.value?.totalBuySubscription || 0,
+        ],
+        backgroundColor: ["rgba(59, 130, 246, 0.5)", "rgba(16, 185, 129, 0.5)"],
+        borderColor: ["rgb(59, 130, 246)", "rgb(16, 185, 129)"],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const pieChartOptions: ChartOptions<"pie"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: "top" },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const label = context.label || "";
+            const value = context.parsed || 0;
+            const total = context.dataset.data.reduce(
+              (acc: number, data: number) => acc + data,
+              0
+            );
+            const percentage = ((value / total) * 100).toFixed(2);
+            return `${label}: ${value} (${percentage}%)`;
+          },
+        },
+      },
+    },
+  };
+
   useEffect(() => {
     const handleResize = () => {
       orderChartRef.current?.resize();
       subscriptionChartRef.current?.resize();
+      customerChartRef.current?.resize();
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -184,7 +228,7 @@ export default function AdminDashboard() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <Skeleton className="h-8 w-24" />
+          <Skeleton className="h-8 w-24 animate-pulse" />
         ) : (
           <div className="text-2xl font-bold text-gray-800">{value}</div>
         )}
@@ -194,19 +238,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <SummaryCard
-          title="Total Buyers"
-          value={totalData?.value?.totalCustomer || 0}
-          icon={Users}
-          isLoading={isTotalLoading}
-        />
-        <SummaryCard
-          title="Total Sellers"
-          value={totalData?.value?.totalVendor || 0}
-          icon={Users}
-          isLoading={isTotalLoading}
-        />
+      <div className="grid grid-cols-1 md:grid-cols3 lg:grid-cols-4 xl:grid-cols-4 gap-6 mb-8">
         <SummaryCard
           title="Total Orders"
           value={totalData?.value?.totalOrder || 0}
@@ -219,13 +251,26 @@ export default function AdminDashboard() {
           icon={CreditCard}
           isLoading={isTotalLoading}
         />
+        <SummaryCard
+          title="Total Vendors"
+          value={totalData?.value?.totalVendor || 0}
+          icon={Users}
+          isLoading={isTotalLoading}
+        />
+        <SummaryCard
+          title="Total Customers"
+          value={totalData?.value?.totalCustomer || 0}
+          icon={UserCheck}
+          isLoading={isTotalLoading}
+        />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="bg-white shadow-lg rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+      {/* Orders & Subscriptions Chart */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="bg-white shadow-lg rounded-lg hover:shadow-xl transition duration-300">
+          <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-xl font-semibold text-gray-800">
-              Orders Overview
+              Orders
             </CardTitle>
             <ToggleGroup
               type="single"
@@ -241,29 +286,27 @@ export default function AdminDashboard() {
               </ToggleGroupItem>
             </ToggleGroup>
           </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              {isOrderLoading ? (
-                <Skeleton className="w-full h-full" />
-              ) : (
-                <Bar
-                  ref={orderChartRef}
-                  options={chartOptions}
-                  data={getOrderChartData()}
-                />
-              )}
-            </div>
+          <CardContent className="relative h-80">
+            {isOrderLoading ? (
+              <Skeleton className="h-full w-full animate-pulse" />
+            ) : (
+              <Bar
+                ref={orderChartRef}
+                data={getOrderChartData()}
+                options={chartOptions}
+              />
+            )}
           </CardContent>
         </Card>
 
-        <Card className="bg-white shadow-lg rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <Card className="bg-white shadow-lg rounded-lg hover:shadow-xl transition duration-300">
+          <CardHeader className="flex justify-between items-center">
             <CardTitle className="text-xl font-semibold text-gray-800">
-              Subscription Growth
+              Subscriptions
             </CardTitle>
             <ToggleGroup
               type="single"
-              value={subscriptionView}
+              value={orderView}
               onValueChange={(value: ViewState) =>
                 value && setSubscriptionView(value)
               }
@@ -277,18 +320,34 @@ export default function AdminDashboard() {
               </ToggleGroupItem>
             </ToggleGroup>
           </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              {isSubscriptionLoading ? (
-                <Skeleton className="w-full h-full" />
-              ) : (
-                <Bar
-                  ref={subscriptionChartRef}
-                  options={chartOptions}
-                  data={subscriptionChartData}
-                />
-              )}
-            </div>
+          <CardContent className="relative h-80">
+            {isSubscriptionLoading ? (
+              <Skeleton className="h-full w-full animate-pulse" />
+            ) : (
+              <Bar
+                ref={subscriptionChartRef}
+                data={subscriptionChartData}
+                options={chartOptions}
+              />
+            )}
+          </CardContent>
+        </Card>
+        <Card className="bg-white shadow-lg rounded-lg">
+          <CardHeader className="flex justify-between items-center">
+            <CardTitle className="text-xl font-semibold text-gray-800">
+              Subscription Breakdown
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="relative h-80">
+            {isTotalLoading ? (
+              <Skeleton className="h-full w-full animate-pulse" />
+            ) : (
+              <Pie
+                ref={customerChartRef}
+                data={customerChartData}
+                options={pieChartOptions}
+              />
+            )}
           </CardContent>
         </Card>
       </div>

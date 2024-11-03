@@ -23,9 +23,9 @@ export interface DashboardAmount {
   totalTransaction: number;
   totalVendor: number;
   totalCustomer: number;
+  totalFreeSubscription: number;
+  totalBuySubscription: number;
 }
-
-
 
 export interface DashboardSubscription {
   no: number;

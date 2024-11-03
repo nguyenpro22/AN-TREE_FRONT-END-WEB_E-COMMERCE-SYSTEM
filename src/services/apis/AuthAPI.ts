@@ -73,6 +73,16 @@ export const authAPI = createApi({
         body,
       }),
     }),
+    validateToken: builder.mutation<
+      IResCommon<ILoginResponse>,
+      { accessToken: string; refreshToken: string }
+    >({
+      query: (body) => ({
+        url: "/auth/refresh_token",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -83,4 +93,5 @@ export const {
   useForgetPasswordMutation,
   useVerifyOTPMutation,
   useResetPasswordMutation,
+  useValidateTokenMutation,
 } = authAPI;

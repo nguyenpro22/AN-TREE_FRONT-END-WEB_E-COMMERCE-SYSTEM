@@ -36,6 +36,7 @@ import { useDispatch } from "react-redux";
 import { setVendor } from "@/redux/store/slices/vendorSlice";
 import { ROLE } from "@/constants/role.constant";
 import { setAdmin } from "@/redux/store/slices/adminSlice";
+import { useAuthValidation } from "@/hooks/useAuthValidation";
 
 export default function Component() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -45,6 +46,8 @@ export default function Component() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const router = useRouter();
   const dispatch = useDispatch();
+  const { isValidating } = useAuthValidation();
+
   const [getProfile, { data: profile }] = useLazyGetVendorProfileQuery();
   const [getAdminProfile, { data: adminProfile }] =
     useLazyGetAdminProfileQuery();
@@ -100,6 +103,7 @@ export default function Component() {
     const { data } = await getAdminProfile();
     console.log(data?.value);
     if (data?.isSuccess) {
+      toast.success("Login successful");
       dispatch(setAdmin(data.value as IAdmin));
       router.push(adminRoutes.DASHBOARD);
     }
@@ -143,17 +147,24 @@ export default function Component() {
   const handleLogout = () => {
     setIsLoggedIn(false);
   };
+  if (isValidating) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
 
   if (isLoggedIn && !profile?.isSuccess) {
     return <VendorCreationForm handleLogout={handleLogout} />;
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
+    <div className="flex justify-center items-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-[900px] overflow-hidden shadow-lg flex">
-        <div className="w-1/3 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-8 flex flex-col justify-center">
+        <div className="w-1/3 bg-gradient-to-r from-green-300 to-green-500 text-primary-foreground p-8 flex flex-col justify-center">
           <h2 className="text-3xl font-bold mb-4">Antree Portal</h2>
-          <p className="text-purple-100 text-lg">
+          <p className="text-primary-foreground/80 text-lg">
             Login or create an account to access your dashboard.
           </p>
         </div>
@@ -193,14 +204,14 @@ export default function Component() {
               </Tabs>
             )}
           </CardContent>
-          <CardFooter className="bg-gray-50 p-6">
-            <p className="text-sm text-center text-gray-600 w-full">
+          <CardFooter className="bg-muted p-6">
+            <p className="text-sm text-center text-muted-foreground w-full">
               By continuing, you agree to our{" "}
-              <a href="#" className="text-purple-600 hover:underline">
+              <a href="#" className="text-primary hover:underline">
                 Terms of Service
               </a>{" "}
               and{" "}
-              <a href="#" className="text-purple-600 hover:underline">
+              <a href="#" className="text-primary hover:underline">
                 Privacy Policy
               </a>
               .

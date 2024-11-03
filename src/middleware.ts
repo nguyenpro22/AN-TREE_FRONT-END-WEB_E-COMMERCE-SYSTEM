@@ -3,15 +3,22 @@ import type { NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
+  const isProtectedRoute =
+    url.pathname.startsWith("/admin") || url.pathname.startsWith("/seller");
 
-  if (url.pathname.startsWith("/admin") || url.pathname.startsWith("/seller")) {
-    const token = req.cookies.get("jwt")?.value;
+  if (!isProtectedRoute) {
+    return NextResponse.next();
+  }
 
-    if (!token) {
-      url.pathname = "/auth";
-      return NextResponse.rewrite(url);
-    }
+  const token = req.cookies.get("jwt")?.value;
+
+  if (!token) {
+    return NextResponse.redirect(new URL("/auth", url));
   }
 
   return NextResponse.next();
 }
+
+export const config = {
+  matcher: ["/admin/:path*", "/seller/:path*"],
+};
