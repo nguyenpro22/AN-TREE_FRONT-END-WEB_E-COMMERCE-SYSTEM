@@ -15,7 +15,7 @@ const Parallax = dynamic(
 const Onclick = {
   buyer: {
     name: "Tìm cây cảnh phù hợp",
-    href: "https://drive.google.com/file/d/1_8iDAMBbPTYKQk0dzz3f9lcdBUWxIqMz/view?usp=drive_link",
+    href: "https://drive.google.com/file/d/1zZU77xjsOA7eJhaoZPzcYN_U69LxAgRk/view?usp=sharing",
   },
   seller: {
     name: "Đăng ký cửa hàng",
@@ -39,10 +39,10 @@ export default function Hero() {
         strength={200}
       >
         <section className="relative min-h-screen flex items-center justify-center px-4 py-20 md:py-40">
-          <div className="absolute inset-0 bg-black bg-opacity-15"></div>
+          <div className="absolute inset-0 bg-black bg-opacity-30"></div>
           <div className="relative z-10 text-center max-w-4xl mx-auto">
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-lg">
-              Kết Nối Người Yêu Cây với Tinh Hoa của Thiên Nhiên
+              Trồng cây dễ dàng, sống xanh thật vui
             </h1>
             <p className="text-lg md:text-xl text-white mb-10 max-w-2xl mx-auto drop-shadow-md">
               Antree là sàn giao dịch hàng đầu kết nối những người yêu cây, các
@@ -52,9 +52,9 @@ export default function Hero() {
               <Button
                 asChild
                 size="lg"
-                className="bg-green-600 hover:bg-green-700 transition-colors"
+                className="bg-green-600 hover:bg-green-700 text-white transition-colors duration-300 shadow-lg hover:shadow-xl"
               >
-                <Link href={Onclick.buyer.href}>
+                <Link href={Onclick.buyer.href} target="_blank">
                   <Search className="mr-2 h-5 w-5" />
                   {Onclick.buyer.name}
                   <ChevronRight className="ml-2 h-5 w-5" />
@@ -64,9 +64,9 @@ export default function Hero() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="bg-white bg-opacity-10 backdrop-blur-md border-white text-white hover:bg-green-600 hover:text-white transition-colors"
+                className="bg-white bg-opacity-10 backdrop-blur-md border-white text-white hover:bg-green-600 hover:text-white transition-colors duration-300 shadow-lg hover:shadow-xl"
               >
-                <Link href={Onclick.seller.href}>
+                <Link href={Onclick.seller.href} target="_blank">
                   <Store className="mr-2 h-5 w-5" />
                   {Onclick.seller.name}
                 </Link>

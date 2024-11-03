@@ -40,16 +40,16 @@ const LoginForm: React.FC<LoginFormProps> = ({
       <div className="space-y-2">
         <Label
           htmlFor="emailOrUserName"
-          className="text-lg font-semibold text-gray-700"
+          className="text-lg font-semibold text-green-700"
         >
-          Email hoặc tên đăng nhập
+          Email or username
         </Label>
         <Input
           id="emailOrUserName"
-          placeholder="Nhập email hoặc tên đăng nhập"
-          className="bg-gray-50 border-2 border-gray-200 focus:border-purple-500 transition-colors"
+          placeholder="Enter email or username"
+          className="bg-gray-50 border-2 border-gray-200 focus:border-green-500 focus:ring-green-500 transition-colors"
           {...register("emailOrUserName", {
-            required: "Email hoặc tên đăng nhập là bắt buộc",
+            required: "Email or username is required",
           })}
         />
         {errors.emailOrUserName && (
@@ -61,23 +61,23 @@ const LoginForm: React.FC<LoginFormProps> = ({
       <div className="space-y-2">
         <Label
           htmlFor="password"
-          className="text-lg font-semibold text-gray-700"
+          className="text-lg font-semibold text-green-700"
         >
-          Mật khẩu
+          Password
         </Label>
         <div className="relative">
           <Input
             id="password"
             type={showPassword ? "text" : "password"}
-            placeholder="Nhập mật khẩu"
-            className="bg-gray-50 border-2 border-gray-200 focus:border-purple-500 transition-colors"
-            {...register("password", { required: "Mật khẩu là bắt buộc" })}
+            placeholder="Enter password"
+            className="bg-gray-50 border-2 border-gray-200 focus:border-green-500 focus:ring-green-500 transition-colors"
+            {...register("password", { required: "Password is required" })}
           />
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent hover:text-green-600"
             onClick={() => setShowPassword(!showPassword)}
           >
             {showPassword ? (
@@ -94,40 +94,20 @@ const LoginForm: React.FC<LoginFormProps> = ({
         )}
       </div>
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Controller
-            name="isRememberMe"
-            control={control}
-            render={({ field }) => (
-              <Checkbox
-                id="isRememberMe"
-                checked={field.value}
-                onCheckedChange={field.onChange}
-                className="border-2 border-gray-300 rounded-sm"
-              />
-            )}
-          />
-          <Label
-            htmlFor="isRememberMe"
-            className="text-sm font-medium text-gray-700 cursor-pointer"
-          >
-            Ghi nhớ mật khẩu
-          </Label>
-        </div>
         <Button
           type="button"
           variant="link"
           onClick={onForgotPassword}
-          className="text-sm text-purple-600 hover:text-purple-800"
+          className="text-sm text-green-600 hover:text-green-800"
         >
-          Quên mật khẩu?
+          Forgot password?
         </Button>
       </div>
       <ColorfulButton
         icon={isLoading ? Loader2 : CheckCircle2}
-        label={isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
+        label={isLoading ? "Signing in..." : "Sign in"}
         disabled={isLoading}
-        className="w-full"
+        iconClassName={isLoading ? "animate-spin" : ""}
       />
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

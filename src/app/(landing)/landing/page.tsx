@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import Header from "@/components/Landing/Header";
 import Hero from "@/components/Landing/Hero";
+import Mockup from "@/components/Landing/Mockup";
 
 const Testimonials = dynamic(
   () => import("@/components/Landing/Testimonials"),
@@ -23,6 +24,7 @@ export default function LandingPage() {
       <main>
         <Hero />
         <Features />
+        <Mockup />
         <HowItWorks />
         <Testimonials />
       </main>

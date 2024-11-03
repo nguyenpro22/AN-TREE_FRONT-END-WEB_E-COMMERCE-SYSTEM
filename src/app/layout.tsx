@@ -5,6 +5,9 @@ import ClientProvider from "@/components/Provider";
 export const metadata: Metadata = {
   title: "AnTree",
   description: "Production by AnTree team",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({
