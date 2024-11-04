@@ -27,6 +27,7 @@ import { ImageSliderSkeleton } from "@/components/Skeleton";
 import ProductImageSlider from "./ImageSlider";
 import { useRouter } from "next/navigation";
 import ProductDiscountManagement from "./DiscountInit";
+import { formatMoney } from "@/utils";
 
 interface ProductDetailsProps {
   product: IProductDetail;
@@ -88,17 +89,13 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         </div>
 
         <div className="flex items-center space-x-3">
-          <DollarSign className="w-6 h-6 text-blue-600" />
           <span className="text-4xl font-bold text-blue-600">
-            ${product.price.toFixed(2)}
+            {formatMoney(product.discountSold)} VNĐ
           </span>
           {product.discountPercent > 0 && (
             <>
               <span className="text-lg text-gray-500 line-through">
-                $
-                {(product.price / (1 - product.discountPercent / 100)).toFixed(
-                  2
-                )}
+                {formatMoney(product.price)} VNĐ
               </span>
               <span className="text-lg font-semibold text-green-500 bg-green-50 px-2 py-1 rounded-md">
                 Tiết kiệm {product.discountPercent}%

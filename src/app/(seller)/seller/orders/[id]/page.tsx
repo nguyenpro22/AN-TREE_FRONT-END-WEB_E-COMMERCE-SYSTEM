@@ -19,7 +19,7 @@ import {
   PackageIcon,
   ClipboardIcon,
 } from "lucide-react";
-import { formatCurrency } from "@/utils/formatters";
+import { formatCurrency, formatMoney } from "@/utils/formatters";
 import { getStatusByCode } from "@/types";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -141,7 +141,7 @@ const OrderInformation: React.FC<{ order: any }> = ({ order }) => (
       <div className="flex justify-between items-center">
         <span className="font-medium">Total:</span>
         <span className="text-lg font-bold text-primary">
-          ${formatCurrency(order?.total)}
+          {formatMoney(order?.total)} VNĐ
         </span>
       </div>
     </div>

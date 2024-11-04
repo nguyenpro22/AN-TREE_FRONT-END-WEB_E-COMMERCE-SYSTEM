@@ -74,7 +74,10 @@ export default function TypedDiscountManagement({ id }: { id: string }) {
 
   const handleEdit = async (updatedDiscount: IPutDiscount) => {
     try {
-      await update({ ...updatedDiscount, productDiscountId: id });
+      await update({
+        ...updatedDiscount,
+        productDiscountId: updatedDiscount.productDiscountId,
+      });
       refetch();
     } catch (error) {
       console.log(error);

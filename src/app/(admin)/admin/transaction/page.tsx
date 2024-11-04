@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TransactionResponse } from "@/types";
+import { formatMoney } from "@/utils";
 
 export default function TransactionPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -220,7 +221,7 @@ export default function TransactionPage() {
                     </TableCell>
                     <TableCell>{transaction.email}</TableCell>
                     <TableCell>{transaction.subscriptionName}</TableCell>
-                    <TableCell>{formatCurrency(transaction.total)}</TableCell>
+                    <TableCell>{formatMoney(transaction.total)} VNĐ</TableCell>
                     <TableCell>{formatDate(transaction.createdAt)}</TableCell>
                     <TableCell>
                       <Badge
@@ -268,7 +269,7 @@ export default function TransactionPage() {
                                   Amount
                                 </h4>
                                 <p className="text-sm">
-                                  {formatCurrency(transaction.total)}
+                                  {formatMoney(transaction.total)} VNĐ
                                 </p>
                               </div>
                               <div className="space-y-2">

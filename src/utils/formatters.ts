@@ -13,3 +13,7 @@ export const currentMonthYear = `${
   new Date().getMonth() + 1
 }-${new Date().getFullYear()}`;
 export const currentYear = `${new Date().getFullYear()}`;
+
+export function formatMoney(number: number): string {
+  return number.toLocaleString("en-US");
+}

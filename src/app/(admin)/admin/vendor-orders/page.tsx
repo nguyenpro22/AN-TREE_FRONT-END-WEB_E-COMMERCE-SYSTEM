@@ -24,6 +24,7 @@ import { Search, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { OrderStatus, OrderStatusType } from "@/types";
 import { useGetOrdersAdminQuery } from "@/services/apis";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatMoney } from "@/utils";
 
 const statusMap: Record<number, OrderStatusType> = {
   0: OrderStatus[0],
@@ -177,7 +178,7 @@ export default function OrderManagement() {
                       {order.orderId}
                     </TableCell>
                     <TableCell>{order.vendorName}</TableCell>
-                    <TableCell>{order.total.toFixed(2)}đ</TableCell>
+                    <TableCell>{formatMoney(order.total)} VNĐ</TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"

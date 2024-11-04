@@ -24,6 +24,7 @@ export const adminAPI = createApi({
         sortColumn?: string;
         sortOrder?: "asc" | "desc";
         isPending?: boolean;
+        searchTerm?: string;
       }
     >({
       query: ({
@@ -32,6 +33,7 @@ export const adminAPI = createApi({
         sortColumn,
         sortOrder,
         isPending = false,
+        searchTerm = "",
       }) => ({
         url: `/vendors`,
         method: "GET",
@@ -41,6 +43,7 @@ export const adminAPI = createApi({
           sortColumn,
           sortOrder,
           isPending,
+          searchTerm,
         },
       }),
     }),
