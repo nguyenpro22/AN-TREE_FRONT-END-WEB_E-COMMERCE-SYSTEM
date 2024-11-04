@@ -42,13 +42,13 @@ const sidebarItems = [
   {
     href: adminRoutes.APPROVAL,
     icon: Settings,
-    label: "Approvals",
+    label: "Approval",
     color: "text-purple-500",
   },
   {
     href: adminRoutes.TRANSACTION,
     icon: BarChart,
-    label: "Transactions",
+    label: "Transaction",
     color: "text-blue-500",
   },
 ];

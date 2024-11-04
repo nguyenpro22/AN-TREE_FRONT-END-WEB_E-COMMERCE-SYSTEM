@@ -10,7 +10,6 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const token = getAccessToken();
-  console.log(token);
 
   return <AdminLayoutClient>{children}</AdminLayoutClient>;
 }

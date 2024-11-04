@@ -37,6 +37,8 @@ import { Pagination } from "antd";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { sellerRoutes } from "@/constants/route.constant";
+import { formatMoney } from "@/utils";
+import { skip } from "node:test";
 
 export default function ProductsPage() {
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -53,22 +55,25 @@ export default function ProductsPage() {
     isLoading,
     refetch,
     isFetching,
-  } = useGetProductsQuery({
-    pageIndex: currentPage,
-    pageSize: pageSize,
-    sortColumn: sortColumn || undefined,
-    vendorName: vendor?.name || "  ",
-    sortOrder: sortDirection,
-    serchTerm: searchTerm,
-    isSale: filterDiscount === "discount" ? true : undefined,
-  });
+  } = useGetProductsQuery(
+    {
+      pageIndex: currentPage,
+      pageSize: pageSize,
+      sortColumn: sortColumn || undefined,
+      vendorName: vendor?.name || "randomVendorName",
+      sortOrder: sortDirection,
+      serchTerm: searchTerm,
+      isSale: filterDiscount === "discount" ? true : undefined,
+    },
+    {
+      skip: !vendor,
+    }
+  );
 
   useEffect(() => {
-    setIsFiltering(true);
-    const timer = setTimeout(() => {
-      refetch().then(() => setIsFiltering(false));
-    }, 500);
-    return () => clearTimeout(timer);
+    if (vendor) {
+      refetch();
+    }
   }, [
     currentPage,
     sortColumn,
@@ -251,15 +256,11 @@ export default function ProductsPage() {
                       </TableCell>
                       <TableCell>
                         <span className="font-semibold text-green-600">
-                          {product?.price.toLocaleString()} VND
+                          {formatMoney(product?.discountSold)} VNĐ
                         </span>
                         {product?.discountPercent > 0 && (
                           <span className="ml-2 text-sm text-gray-500 line-through">
-                            {(
-                              product?.price /
-                              (1 - product?.discountPercent / 100)
-                            ).toFixed(0)}{" "}
-                            VND
+                            {formatMoney(product?.price)} VND
                           </span>
                         )}
                       </TableCell>

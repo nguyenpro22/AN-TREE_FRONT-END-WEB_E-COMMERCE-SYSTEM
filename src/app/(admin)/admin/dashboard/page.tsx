@@ -230,7 +230,7 @@ export default function AdminDashboard() {
         {isLoading ? (
           <Skeleton className="h-8 w-24 animate-pulse" />
         ) : (
-          <div className="text-2xl font-bold text-gray-800">{value}</div>
+          <div className="text-2xl font-bold pt-2 text-gray-800">{value}</div>
         )}
       </CardContent>
     </Card>
@@ -238,33 +238,55 @@ export default function AdminDashboard() {
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-      <div className="grid grid-cols-1 md:grid-cols3 lg:grid-cols-4 xl:grid-cols-4 gap-6 mb-8">
-        <SummaryCard
-          title="Total Orders"
-          value={totalData?.value?.totalOrder || 0}
-          icon={Package}
-          isLoading={isTotalLoading}
-        />
-        <SummaryCard
-          title="Total Transactions"
-          value={totalData?.value?.totalTransaction || 0}
-          icon={CreditCard}
-          isLoading={isTotalLoading}
-        />
-        <SummaryCard
-          title="Total Vendors"
-          value={totalData?.value?.totalVendor || 0}
-          icon={Users}
-          isLoading={isTotalLoading}
-        />
-        <SummaryCard
-          title="Total Customers"
-          value={totalData?.value?.totalCustomer || 0}
-          icon={UserCheck}
-          isLoading={isTotalLoading}
-        />
-      </div>
+      <div className="flex gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-2 gap-6 mb-8 w-[50%]">
+          <SummaryCard
+            title="Total Orders"
+            value={totalData?.value?.totalOrder || 0}
+            icon={Package}
+            isLoading={isTotalLoading}
+          />
+          <SummaryCard
+            title="Total Transactions"
+            value={totalData?.value?.totalTransaction || 0}
+            icon={CreditCard}
+            isLoading={isTotalLoading}
+          />
+          <SummaryCard
+            title="Total Vendors"
+            value={totalData?.value?.totalVendor || 0}
+            icon={Users}
+            isLoading={isTotalLoading}
+          />
+          <SummaryCard
+            title="Total Customers"
+            value={totalData?.value?.totalCustomer || 0}
+            icon={UserCheck}
+            isLoading={isTotalLoading}
+          />
+        </div>
 
+        <div className="w-[50%] mb-8 ">
+          <Card className="bg-white shadow-lg rounded-lg">
+            <CardHeader className="flex justify-between items-center">
+              <CardTitle className="text-xl font-semibold text-gray-800">
+                Subscription Breakdown
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="relative h-80">
+              {isTotalLoading ? (
+                <Skeleton className="h-full w-full animate-pulse" />
+              ) : (
+                <Pie
+                  ref={customerChartRef}
+                  data={customerChartData}
+                  options={pieChartOptions}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
       {/* Orders & Subscriptions Chart */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-white shadow-lg rounded-lg hover:shadow-xl transition duration-300">
@@ -328,24 +350,6 @@ export default function AdminDashboard() {
                 ref={subscriptionChartRef}
                 data={subscriptionChartData}
                 options={chartOptions}
-              />
-            )}
-          </CardContent>
-        </Card>
-        <Card className="bg-white shadow-lg rounded-lg">
-          <CardHeader className="flex justify-between items-center">
-            <CardTitle className="text-xl font-semibold text-gray-800">
-              Subscription Breakdown
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative h-80">
-            {isTotalLoading ? (
-              <Skeleton className="h-full w-full animate-pulse" />
-            ) : (
-              <Pie
-                ref={customerChartRef}
-                data={customerChartData}
-                options={pieChartOptions}
               />
             )}
           </CardContent>

@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getStatusByCode, Order } from "@/types";
-import { formatCurrency } from "@/utils";
+import { formatCurrency, formatMoney } from "@/utils";
 import { useGetOrdersQuery } from "@/services/apis/OrderAPI";
 import { TableRowSkeleton } from "@/components/Skeleton";
 import { sellerRoutes } from "@/constants/route.constant";
@@ -213,7 +213,7 @@ export default function EnhancedOrdersPage() {
                         {order.id.slice(0, 8)}
                       </TableCell>
                       <TableCell>{`${order.user.firstname} ${order.user.lastname}`}</TableCell>
-                      <TableCell>{formatCurrency(order.total)}đ</TableCell>
+                      <TableCell>{formatMoney(order.total)} VNĐ</TableCell>
                       <TableCell>{renderOrderStatus(order.status)}</TableCell>
                       <TableCell>{formatDate(order.createdOnUtc)}</TableCell>
                       <TableCell>

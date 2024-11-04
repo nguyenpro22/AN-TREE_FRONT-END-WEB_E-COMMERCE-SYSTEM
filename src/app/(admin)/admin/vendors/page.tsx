@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,11 +27,28 @@ import VendorDetailsPopup from "@/components/Admin/VendorPopup";
 
 const PAGE_SIZE = 6;
 
+interface Vendor {
+  id: string;
+  name: string;
+  email: string;
+  phonenumber: string;
+  avatarImage: string;
+  createdOnUtc: string;
+  address: string;
+  city: string;
+  province: string;
+  bankName: string;
+  bankOwnerName: string;
+  bankAccountNumber: string;
+  coverImage: string;
+  modifiedOnUtc: string;
+}
+
 export default function VendorManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [filteredVendors, setFilteredVendors] = useState<any[]>([]);
-  const [selectedVendor, setSelectedVendor] = useState<any>(null);
+  const [filteredVendors, setFilteredVendors] = useState<Vendor[]>([]);
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const {
     data: vendorsData,
@@ -40,44 +57,44 @@ export default function VendorManagement() {
     isError,
     refetch,
   } = useGetVendorsQuery({
+    searchTerm,
     pageIndex: currentPage,
     pageSize: PAGE_SIZE,
   });
 
-  useEffect(() => {
-    if (vendorsData?.value?.items) {
-      const filtered = vendorsData.value.items.filter(
-        (vendor) =>
-          vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          vendor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          vendor.phonenumber.includes(searchTerm)
-      );
-      setFilteredVendors(filtered);
-    }
-  }, [vendorsData, searchTerm]);
-
-  const totalPages = Math.ceil(
-    (vendorsData?.value?.totalCount || 0) / PAGE_SIZE
+  const totalPages = useMemo(
+    () => Math.ceil((vendorsData?.value?.totalCount || 0) / PAGE_SIZE),
+    [vendorsData?.value?.totalCount]
   );
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
-  };
+  }, []);
 
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-    refetch();
-  };
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setCurrentPage(newPage);
+      refetch();
+    },
+    [refetch]
+  );
 
-  const handleViewVendor = (vendor: any) => {
+  const handleViewVendor = useCallback((vendor: Vendor) => {
     setSelectedVendor(vendor);
     setIsPopupOpen(true);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (vendorsData?.value?.items) {
+      setFilteredVendors(vendorsData.value.items);
+    }
+  }, [vendorsData?.value?.items]);
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"></CardHeader>
@@ -200,7 +217,7 @@ export default function VendorManagement() {
         </div>
       </CardContent>
       <VendorDetailsPopup
-        vendor={selectedVendor}
+        vendor={selectedVendor || null}
         isOpen={isPopupOpen}
         onClose={() => setIsPopupOpen(false)}
       />
