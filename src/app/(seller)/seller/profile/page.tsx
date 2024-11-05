@@ -184,7 +184,6 @@ export default function UserProfile() {
 
       if (res) {
         dispatch(setVendor({ ...vendor, ...values } as IUser));
-        setIsEditing(false);
         toast.success("Profile updated successfully");
       }
     } catch (error) {
@@ -214,6 +213,7 @@ export default function UserProfile() {
           onCancel={() => setIsEditing(false)}
           sendOtp={sendOtp}
           verifyOtp={verifyOtp}
+          setIsEditing={setIsEditing}
         />
       ) : (
         <ProfileCard vendor={vendor} onEdit={() => setIsEditing(true)} />
