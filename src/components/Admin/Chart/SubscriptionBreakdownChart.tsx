@@ -86,14 +86,6 @@ export default function SubscriptionBreakdownChart({
 
   return (
     <Card className="bg-white rounded-xl border-none shadow-sm">
-      <CardHeader className="space-y-1.5 pb-6">
-        <CardTitle className="text-xl font-semibold text-center">
-          Subscription Breakdown
-        </CardTitle>
-        <p className="text-center text-muted-foreground text-sm font-normal">
-          Free vs Paid Subscriptions Distribution
-        </p>
-      </CardHeader>
       <CardContent>
         <div className="h-[300px] w-full">
           <Pie data={chartData} options={options as any} />
