@@ -33,6 +33,7 @@ import {
   currentMonthYear,
   currentYear,
   formatDateRange,
+  formatMoney,
   formatMonth,
   ViewState,
 } from "@/utils";
@@ -217,7 +218,7 @@ export default function AdminDashboard() {
     isLoading,
   }: {
     title: string;
-    value: number;
+    value: number | string;
     icon: React.ElementType;
     isLoading: boolean;
   }) => (
@@ -244,7 +245,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-2 gap-6 mb-8 w-[50%]">
           <SummaryCard
             title="Total Revenue"
-            value={totalData?.value?.totalOrder || 0}
+            value={formatMoney(totalData?.value?.totalRevenue || 0) + " VNĐ"}
             icon={Package}
             isLoading={isTotalLoading}
           />

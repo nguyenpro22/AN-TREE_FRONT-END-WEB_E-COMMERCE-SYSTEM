@@ -1,3 +1,4 @@
+import { adminAPI } from "@/services/apis";
 import { IAdmin } from "@/types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
@@ -29,6 +30,27 @@ const adminSlice = createSlice({
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addMatcher(adminAPI.endpoints.getAdminProfile.matchPending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addMatcher(
+        adminAPI.endpoints.getAdminProfile.matchFulfilled,
+        (state, action) => {
+          state.isLoading = false;
+          state.admin = action.payload.value;
+        }
+      )
+      .addMatcher(
+        adminAPI.endpoints.getAdminProfile.matchRejected,
+        (state, action) => {
+          state.isLoading = false;
+          state.error = action.error.message || "An error occurred";
+        }
+      );
   },
 });
 

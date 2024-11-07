@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,10 @@ import { useNavigation } from "@/hooks/useNavigation";
 import { adminRoutes } from "@/constants/route.constant";
 import { IAdmin } from "@/types";
 import { RootState } from "@/redux/store";
-import { useSelector } from "react-redux";
+import { shallowEqual, useSelector } from "react-redux";
+import { useGetAdminProfileQuery } from "@/services/apis";
 
+// Move outside component to prevent recreation on each render
 const sidebarItems = [
   {
     href: adminRoutes.DASHBOARD,
@@ -51,12 +53,58 @@ const sidebarItems = [
     label: "Transaction",
     color: "text-blue-500",
   },
-];
+] as const; // Make array readonly
 
 export default function AdminSidebar() {
+  // Memoize state changes
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { currentPage, setCurrentPage } = useNavigation();
-  const admin = useSelector((state: RootState) => state.admin.admin) as IAdmin;
+
+  const { data: adminData, isLoading } = useGetAdminProfileQuery();
+
+  // Skip re-renders if admin data hasn't changed
+  const admin = useSelector(
+    (state: RootState) => state.admin.admin,
+    shallowEqual
+  ) as IAdmin;
+  console.log(admin);
+
+  // Memoize click handler
+  const handleCollapse = useCallback(() => {
+    setIsCollapsed((prev) => !prev);
+  }, []);
+
+  // Memoize sidebar items rendering
+  const renderSidebarItems = useMemo(
+    () =>
+      sidebarItems.map((item) => (
+        <li key={item.href}>
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start transition-all hover:bg-gray-100",
+              currentPage === item.label && "bg-gray-100 font-semibold",
+              isCollapsed && "justify-center"
+            )}
+            onClick={() => setCurrentPage(item.label)}
+            asChild
+          >
+            <Link href={item.href}>
+              <item.icon
+                className={cn(
+                  "h-5 w-5",
+                  item.color,
+                  isCollapsed ? "mr-0" : "mr-2"
+                )}
+              />
+              {!isCollapsed && item.label}
+            </Link>
+          </Button>
+        </li>
+      )),
+    [currentPage, isCollapsed, setCurrentPage]
+  );
+
   return (
     <div
       className={cn(
@@ -73,7 +121,7 @@ export default function AdminSidebar() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={handleCollapse}
           className="ml-auto"
         >
           {isCollapsed ? (
@@ -100,35 +148,7 @@ export default function AdminSidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2">
-        <ul className="space-y-2">
-          {sidebarItems.map((item) => (
-            <li key={item.href}>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start transition-all hover:bg-gray-100",
-                  currentPage === item.label && "bg-gray-100 font-semibold",
-                  isCollapsed && "justify-center"
-                )}
-                onClick={() => {
-                  setCurrentPage(item.label);
-                }}
-                asChild
-              >
-                <Link href={item.href}>
-                  <item.icon
-                    className={cn(
-                      "h-5 w-5",
-                      item.color,
-                      isCollapsed ? "mr-0" : "mr-2"
-                    )}
-                  />
-                  {!isCollapsed && item.label}
-                </Link>
-              </Button>
-            </li>
-          ))}
-        </ul>
+        <ul className="space-y-2">{renderSidebarItems}</ul>
       </nav>
     </div>
   );

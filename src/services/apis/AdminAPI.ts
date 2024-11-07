@@ -14,6 +14,7 @@ import {
 
 export const adminAPI = createApi({
   reducerPath: "AdminAPI",
+  tagTypes: ["Admin"],
   baseQuery: baseQueryWithReAuth,
   endpoints: (builder) => ({
     getVendors: builder.query<
@@ -124,6 +125,7 @@ export const adminAPI = createApi({
     }),
     getAdminProfile: builder.query<IResCommon<IAdmin>, void>({
       query: () => ({ url: `auth/me`, method: "GET" }),
+      providesTags: ["Admin"],
     }),
   }),
 });
