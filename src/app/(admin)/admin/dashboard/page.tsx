@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   format,
   parse,
@@ -19,6 +19,7 @@ import {
   Legend,
   ChartOptions,
   ArcElement,
+  ChartData,
 } from "chart.js";
 import { Users, CreditCard, Package, UserCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,21 +50,24 @@ ChartJS.register(
   ArcElement
 );
 
-type DateSelection = {
-  type: "month" | "year";
-  value: string;
-};
+// Move outside to avoid recreation
+const getCurrentDateSelection = (): DateSelection => ({
+  type: "month",
+  value: format(new Date(), "MM-yyyy"),
+});
 
-type ChartData = {
-  labels: string[];
-  datasets: {
-    label: string;
-    data: number[];
-    backgroundColor: string;
-    borderColor: string;
-    borderWidth: number;
-  }[];
-};
+// Add type safety for date selection
+const DATE_TYPES = {
+  MONTH: "month",
+  YEAR: "year",
+} as const;
+
+type DateType = (typeof DATE_TYPES)[keyof typeof DATE_TYPES];
+
+interface DateSelection {
+  type: DateType;
+  value: string;
+}
 
 const SummaryCard = ({
   title,
@@ -102,34 +106,47 @@ const DateSelector = ({
   setDateSelection: (selection: DateSelection) => void;
   label: string;
 }) => {
-  const { years, months } = generateDateOptions();
+  // Memoize options to prevent recalculation
+  const { years, months } = useMemo(() => generateDateOptions(), []);
+
+  const handleTypeChange = useCallback(
+    (value: DateType) => {
+      const currentDate = new Date();
+      const newValue =
+        value === DATE_TYPES.YEAR
+          ? currentDate.getFullYear().toString()
+          : format(currentDate, "MM-yyyy");
+
+      setDateSelection({ type: value, value: newValue });
+    },
+    [setDateSelection]
+  );
+
+  const handleValueChange = useCallback(
+    (value: string) => {
+      setDateSelection({ type: dateSelection.type, value });
+    },
+    [dateSelection.type, setDateSelection]
+  );
 
   return (
     <div className="flex items-center space-x-2">
       <span className="text-sm font-medium text-gray-700">{label}:</span>
-      <Select
-        value={dateSelection.type}
-        onValueChange={(value: "month" | "year") =>
-          setDateSelection({ ...dateSelection, type: value })
-        }
-      >
+      <Select value={dateSelection.type} onValueChange={handleTypeChange}>
         <SelectTrigger className="w-[120px]">
           <SelectValue placeholder="Select view" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="month">Month</SelectItem>
-          <SelectItem value="year">Year</SelectItem>
+          <SelectItem value={DATE_TYPES.MONTH}>Month</SelectItem>
+          <SelectItem value={DATE_TYPES.YEAR}>Year</SelectItem>
         </SelectContent>
       </Select>
-      <Select
-        value={dateSelection.value}
-        onValueChange={(value) => setDateSelection({ ...dateSelection, value })}
-      >
+      <Select value={dateSelection.value} onValueChange={handleValueChange}>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Select date" />
         </SelectTrigger>
         <SelectContent>
-          {dateSelection.type === "month"
+          {dateSelection.type === DATE_TYPES.MONTH
             ? months.map((month) => (
                 <SelectItem key={month.value} value={month.value}>
                   {month.label}
@@ -157,7 +174,7 @@ const ChartCard = ({
   title: string;
   dateSelection: DateSelection;
   setDateSelection: (selection: DateSelection) => void;
-  chartData: ChartData;
+  chartData: ChartData<"bar">;
   isLoading: boolean;
   chartRef: React.RefObject<ChartJS<"bar">>;
 }) => (
@@ -176,7 +193,11 @@ const ChartCard = ({
       {isLoading ? (
         <Skeleton className="h-full w-full animate-pulse" />
       ) : (
-        <Bar ref={chartRef} data={chartData} options={chartOptions} />
+        <Bar
+          ref={chartRef}
+          data={chartData as ChartData<"bar">}
+          options={chartOptions}
+        />
       )}
     </CardContent>
   </Card>
@@ -213,11 +234,6 @@ const formatMonth = (date: string) => {
   return format(parse(date, "yyyy-MM-dd", new Date()), "MM-yyyy");
 };
 
-const getCurrentDateSelection = (): DateSelection => ({
-  type: "month",
-  value: format(new Date(), "MM-yyyy"),
-});
-
 export default function AdminDashboard() {
   const [orderDateSelection, setOrderDateSelection] = useState<DateSelection>(
     getCurrentDateSelection()
@@ -244,7 +260,7 @@ export default function AdminDashboard() {
 
   const orders = orderData?.value || [];
 
-  const getOrderChartData = (): ChartData => ({
+  const getOrderChartData = (): ChartData<"bar"> => ({
     labels: orders.map((item) =>
       orderDateSelection.type === "month"
         ? formatDateRange(item.startDate, item.endDate)
@@ -297,7 +313,7 @@ export default function AdminDashboard() {
     return { labels, farmerData, officerData, merchantData };
   };
 
-  const getSubscriptionChartData = (): ChartData => {
+  const getSubscriptionChartData = (): ChartData<"bar"> => {
     const { labels, farmerData, officerData, merchantData } =
       aggregateSubscriptionData(subscriptionData, subscriptionDateSelection);
 
