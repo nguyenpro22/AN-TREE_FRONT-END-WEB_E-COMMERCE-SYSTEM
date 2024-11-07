@@ -48,6 +48,7 @@ interface EditProfileFormProps {
   onCancel: () => void;
   sendOtp: () => Promise<void>;
   verifyOtp: (otp: string) => Promise<boolean>;
+  setIsEditing: (isEditing: boolean) => void;
 }
 
 export function EditProfileForm({
@@ -56,6 +57,7 @@ export function EditProfileForm({
   onCancel,
   sendOtp,
   verifyOtp,
+  setIsEditing,
 }: EditProfileFormProps) {
   const [avatarPreview, setAvatarPreview] = useState(vendor.avatarImage);
   const [coverPreview, setCoverPreview] = useState(vendor.coverImage);
@@ -101,25 +103,25 @@ export function EditProfileForm({
   };
 
   const handleSubmit = async (values: FormValues) => {
+    onSubmit(form.getValues());
     if (requiresOtp(values)) {
       await sendOtp();
       setIsOtpDialogOpen(true);
       setOtpCountdown(120);
     } else {
-      onSubmit(values);
+      setIsEditing(false);
     }
   };
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     const isValid = await verifyOtp(otpValue);
     if (isValid) {
       setIsOtpDialogOpen(false);
-      onSubmit(form.getValues());
     } else {
       // Handle invalid OTP
       alert("Invalid OTP. Please try again.");
     }
+    setIsEditing(false);
   };
 
   const requiresOtp = (values: FormValues) =>
@@ -202,6 +204,8 @@ function ImageUploadSection({
             src={coverPreview}
             alt="Cover"
             className="w-full h-full object-cover"
+            width={100}
+            height={100}
           />
         )}
         <InputFileUpload

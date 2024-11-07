@@ -19,14 +19,13 @@ export interface TransactionResponse {
 }
 
 export interface DashboardAmount {
-  totalOrder: number;
+  totalRevenue: number;
   totalTransaction: number;
   totalVendor: number;
   totalCustomer: number;
   totalFreeSubscription: number;
   totalBuySubscription: number;
 }
-
 export interface DashboardSubscription {
   no: number;
   startDate: string;

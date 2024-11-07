@@ -33,9 +33,12 @@ import {
   currentMonthYear,
   currentYear,
   formatDateRange,
+  formatMoney,
   formatMonth,
   ViewState,
 } from "@/utils";
+import SubscriptionBreakdownChart from "@/components/Admin/Chart/SubscriptionBreakdownChart";
+import { DashboardAmount } from "@/types";
 
 ChartJS.register(
   CategoryScale,
@@ -215,7 +218,7 @@ export default function AdminDashboard() {
     isLoading,
   }: {
     title: string;
-    value: number;
+    value: number | string;
     icon: React.ElementType;
     isLoading: boolean;
   }) => (
@@ -241,13 +244,13 @@ export default function AdminDashboard() {
       <div className="flex gap-6">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-2 gap-6 mb-8 w-[50%]">
           <SummaryCard
-            title="Total Orders"
-            value={totalData?.value?.totalOrder || 0}
+            title="Total Revenue"
+            value={formatMoney(totalData?.value?.totalRevenue || 0) + " VNĐ"}
             icon={Package}
             isLoading={isTotalLoading}
           />
           <SummaryCard
-            title="Total Transactions"
+            title="Total Premium Customers"
             value={totalData?.value?.totalTransaction || 0}
             icon={CreditCard}
             isLoading={isTotalLoading}
@@ -266,25 +269,10 @@ export default function AdminDashboard() {
           />
         </div>
 
-        <div className="w-[50%] mb-8 ">
-          <Card className="bg-white shadow-lg rounded-lg">
-            <CardHeader className="flex justify-between items-center">
-              <CardTitle className="text-xl font-semibold text-gray-800">
-                Subscription Breakdown
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="relative h-80">
-              {isTotalLoading ? (
-                <Skeleton className="h-full w-full animate-pulse" />
-              ) : (
-                <Pie
-                  ref={customerChartRef}
-                  data={customerChartData}
-                  options={pieChartOptions}
-                />
-              )}
-            </CardContent>
-          </Card>
+        <div className="w-[50%] mb-8">
+          <SubscriptionBreakdownChart
+            totalData={totalData?.value as DashboardAmount}
+          />
         </div>
       </div>
       {/* Orders & Subscriptions Chart */}
@@ -328,7 +316,7 @@ export default function AdminDashboard() {
             </CardTitle>
             <ToggleGroup
               type="single"
-              value={orderView}
+              value={subscriptionView}
               onValueChange={(value: ViewState) =>
                 value && setSubscriptionView(value)
               }
