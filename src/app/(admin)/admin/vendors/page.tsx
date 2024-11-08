@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   Search,
   Plus,
@@ -24,31 +25,15 @@ import {
 import { useGetVendorsQuery } from "@/services/apis";
 import { Skeleton } from "@/components/ui/skeleton";
 import VendorDetailsPopup from "@/components/Admin/VendorPopup";
+import { Vendors } from "@/types";
 
 const PAGE_SIZE = 6;
 
-interface Vendor {
-  id: string;
-  name: string;
-  email: string;
-  phonenumber: string;
-  avatarImage: string;
-  createdOnUtc: string;
-  address: string;
-  city: string;
-  province: string;
-  bankName: string;
-  bankOwnerName: string;
-  bankAccountNumber: string;
-  coverImage: string;
-  modifiedOnUtc: string;
-}
-
-export default function VendorManagement() {
+export default function Component() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [filteredVendors, setFilteredVendors] = useState<Vendor[]>([]);
-  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+  const [filteredVendors, setFilteredVendors] = useState<Vendors[]>([]);
+  const [selectedVendor, setSelectedVendor] = useState<Vendors | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const {
     data: vendorsData,
@@ -84,9 +69,25 @@ export default function VendorManagement() {
     [refetch]
   );
 
-  const handleViewVendor = useCallback((vendor: Vendor) => {
+  const handleViewVendor = useCallback((vendor: Vendors) => {
     setSelectedVendor(vendor);
     setIsPopupOpen(true);
+  }, []);
+
+  const getStatusBadge = useCallback((status: number) => {
+    return status === 0 ? (
+      <Badge variant="outline">Approved</Badge>
+    ) : (
+      <Badge variant="default">Pending</Badge>
+    );
+  }, []);
+
+  const getDeletedBadge = useCallback((isDeleted: number) => {
+    return isDeleted === 0 ? (
+      <Badge variant="outline">Active</Badge>
+    ) : (
+      <Badge variant="destructive">Deleted</Badge>
+    );
   }, []);
 
   useEffect(() => {
@@ -130,6 +131,8 @@ export default function VendorManagement() {
                 <TableHead>Email</TableHead>
                 <TableHead className="hidden md:table-cell">Phone</TableHead>
                 <TableHead className="hidden md:table-cell">Joined</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Is Active</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -137,20 +140,20 @@ export default function VendorManagement() {
               {isLoading || isFetching ? (
                 Array.from({ length: PAGE_SIZE }).map((_, index) => (
                   <TableRow key={index}>
-                    <TableCell colSpan={6}>
+                    <TableCell colSpan={8}>
                       <Skeleton className="h-10 w-full" />
                     </TableCell>
                   </TableRow>
                 ))
               ) : isError ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-red-500">
+                  <TableCell colSpan={8} className="text-center text-red-500">
                     Error loading vendors. Please try again.
                   </TableCell>
                 </TableRow>
               ) : filteredVendors.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">
+                  <TableCell colSpan={8} className="text-center">
                     No vendors found.
                   </TableCell>
                 </TableRow>
@@ -176,6 +179,8 @@ export default function VendorManagement() {
                     <TableCell className="hidden md:table-cell">
                       {formatDate(vendor.createdOnUtc)}
                     </TableCell>
+                    <TableCell>{getStatusBadge(vendor.status)}</TableCell>
+                    <TableCell>{getDeletedBadge(vendor.isDeleted)}</TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"
@@ -184,6 +189,7 @@ export default function VendorManagement() {
                         onClick={() => handleViewVendor(vendor)}
                       >
                         <View className="h-4 w-4" />
+                        <span className="sr-only">View vendor details</span>
                       </Button>
                     </TableCell>
                   </TableRow>
