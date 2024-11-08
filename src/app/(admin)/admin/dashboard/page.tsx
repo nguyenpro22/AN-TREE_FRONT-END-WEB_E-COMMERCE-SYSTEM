@@ -371,7 +371,7 @@ export default function AdminDashboard() {
             isLoading={isTotalLoading}
           />
           <SummaryCard
-            title="Total Vendors"
+            title="Total Active Vendors"
             value={totalData?.value?.totalVendor || 0}
             icon={Users}
             isLoading={isTotalLoading}

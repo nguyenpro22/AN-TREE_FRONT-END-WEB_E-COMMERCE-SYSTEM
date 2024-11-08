@@ -7,9 +7,9 @@ import {
   IAdmin,
   IListResponse,
   IResCommon,
-  IUser,
   OrderResponse,
   TransactionResponse,
+  Vendors,
 } from "@/types";
 
 export const adminAPI = createApi({
@@ -18,7 +18,7 @@ export const adminAPI = createApi({
   baseQuery: baseQueryWithReAuth,
   endpoints: (builder) => ({
     getVendors: builder.query<
-      IResCommon<IListResponse<IUser>>,
+      IResCommon<IListResponse<Vendors>>,
       {
         pageIndex?: number;
         pageSize?: number;
